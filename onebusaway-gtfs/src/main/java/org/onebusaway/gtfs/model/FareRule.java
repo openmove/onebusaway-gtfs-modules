@@ -22,90 +22,103 @@ import org.onebusaway.gtfs.serialization.mappings.EntityFieldMappingFactory;
 @CsvFields(filename = "fare_rules.txt", required = false)
 public final class FareRule extends IdentityBean<Integer> {
 
-  private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-  @CsvField(ignore = true)
-  private int id;
+	@CsvField(ignore = true)
+	private int id;
 
-  @CsvField(name = "fare_id", mapping = EntityFieldMappingFactory.class)
-  private FareAttribute fare;
+	@CsvField(name = "fare_id", mapping = EntityFieldMappingFactory.class)
+	private FareAttribute fare;
 
-  @CsvField(name = "route_id", optional = true, mapping = EntityFieldMappingFactory.class)
-  private Route route;
+	@CsvField(name = "route_id", optional = true, mapping = EntityFieldMappingFactory.class)
+	private Route route;
 
-  @CsvField(optional = true)
-  private String originId;
+	@CsvField(optional = true)
+	private String originId;
 
-  @CsvField(optional = true)
-  private String destinationId;
+	@CsvField(optional = true)
+	private String destinationId;
 
-  @CsvField(optional = true)
-  private String containsId;
+	@CsvField(optional = true)
+	private String containsId;
 
-  public FareRule() {
+	@CsvField(name = "instr_id", optional = true) /*TT routing hint*/
+	private String routingId;
 
-  }
+	public FareRule() {
 
-  public FareRule(FareRule fr) {
-    this.id = fr.id;
-    this.fare = fr.fare;
-    this.route = fr.route;
-    this.originId = fr.originId;
-    this.destinationId = fr.destinationId;
-    this.containsId = fr.containsId;
-  }
+	}
 
-  @Override
-  public Integer getId() {
-    return id;
-  }
+	public FareRule(FareRule fr) {
+		this.id = fr.id;
+		this.fare = fr.fare;
+		this.route = fr.route;
+		this.originId = fr.originId;
+		this.destinationId = fr.destinationId;
+		this.containsId = fr.containsId;
+		this.routingId = fr.routingId;
+	}
 
-  @Override
-  public void setId(Integer id) {
-    this.id = id;
-  }
+	@Override
+	public Integer getId() {
+		return this.id;
+	}
 
-  public FareAttribute getFare() {
-    return fare;
-  }
+	@Override
+	public void setId(Integer id) {
+		this.id = id;
+	}
 
-  public void setFare(FareAttribute fare) {
-    this.fare = fare;
-  }
+	public FareAttribute getFare() {
+		return this.fare;
+	}
 
-  public Route getRoute() {
-    return route;
-  }
+	public void setFare(FareAttribute fare) {
+		this.fare = fare;
+	}
 
-  public void setRoute(Route route) {
-    this.route = route;
-  }
+	public Route getRoute() {
+		return this.route;
+	}
 
-  public String getOriginId() {
-    return originId;
-  }
+	public void setRoute(Route route) {
+		this.route = route;
+	}
 
-  public void setOriginId(String originId) {
-    this.originId = originId;
-  }
+	public String getOriginId() {
+		return this.originId;
+	}
 
-  public String getDestinationId() {
-    return destinationId;
-  }
+	public void setOriginId(String originId) {
+		this.originId = originId;
+	}
 
-  public void setDestinationId(String destinationId) {
-    this.destinationId = destinationId;
-  }
+	public String getDestinationId() {
+		return this.destinationId;
+	}
 
-  public String getContainsId() {
-    return containsId;
-  }
+	public void setDestinationId(String destinationId) {
+		this.destinationId = destinationId;
+	}
 
-  public void setContainsId(String containsId) {
-    this.containsId = containsId;
-  }
+	public String getContainsId() {
+		return this.containsId;
+	}
 
-  public String toString() {
-    return "<FareRule " + getId() + ">";
-  }
+	public void setContainsId(String containsId) {
+		this.containsId = containsId;
+	}
+
+	public String getRoutingId() {
+		return this.routingId;
+	}
+
+	public void setRoutingId(String routingId) {
+		this.routingId = routingId;
+	}
+
+	@Override
+	public String toString() {
+		return "<FareRule " + this.getId() + ">";
+	}
 }
