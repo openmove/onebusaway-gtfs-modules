@@ -21,6 +21,10 @@
 
   <repositories>
     <repository>
+      <id>public.onebusaway.org</id>
+      <url>http://nexus.onebusaway.org/content/groups/public/</url>
+    </repository>
+    <repository>
       <id>github-onebusaway-gtfs-modules</id>
       <url>https://maven.pkg.github.com/openmove/onebusaway-gtfs-modules</url>
     </repository>
