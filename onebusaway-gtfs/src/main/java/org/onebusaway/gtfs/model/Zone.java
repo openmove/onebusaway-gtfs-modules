@@ -17,13 +17,14 @@ package org.onebusaway.gtfs.model;
 
 import org.onebusaway.csv_entities.schema.annotations.CsvField;
 import org.onebusaway.csv_entities.schema.annotations.CsvFields;
+import org.onebusaway.gtfs.serialization.mappings.DefaultAgencyIdFieldMappingFactory;
 
 @CsvFields(filename = "zones.txt", prefix = "zone_", required = false)
-public final class Zone extends IdentityBean<String> {
+public final class Zone extends IdentityBean<AgencyAndId> {
 	private static final long serialVersionUID = 9113627137996962050L;
 
-	@CsvField()
-	private String id;
+	@CsvField(mapping = DefaultAgencyIdFieldMappingFactory.class)
+	private AgencyAndId id;
 
 	@CsvField
 	private float lat;
@@ -46,12 +47,12 @@ public final class Zone extends IdentityBean<String> {
 	}
 
 	@Override
-	public String getId() {
+	public AgencyAndId getId() {
 		return this.id;
 	}
 
 	@Override
-	public void setId(String id) {
+	public void setId(AgencyAndId id) {
 		this.id = id;
 	}
 
