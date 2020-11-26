@@ -28,22 +28,6 @@
       <id>github-onebusaway-gtfs-modules</id>
       <url>https://maven.pkg.github.com/openmove/onebusaway-gtfs-modules</url>
     </repository>
-  </repositories>
-
-  <scm>
-    <connection>scm:git:https://github.com/openmove/onebusaway-gtfs-modules.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/openmove/onebusaway-gtfs-modules.git</developerConnection>
-    <url>https://github.com/openmove/onebusaway-gtfs-modules</url>
-    <tag>onebusaway-gtfs-modules-1.3.91</tag>
-  </scm>
-
-  <issueManagement>
-    <system>GitHub</system>
-    <url>https://github.com/openmove/onebusaway-gtfs-modules/issues</url>
-  </issueManagement>
-
-
-  <repositories>
     <repository>
       <id>repo.camsys-apps.com</id>
       <url>https://repo.camsys-apps.com/third-party/</url>
@@ -69,6 +53,19 @@
       </snapshots>
     </repository>
   </repositories>
+
+  <scm>
+    <connection>scm:git:https://github.com/openmove/onebusaway-gtfs-modules.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/openmove/onebusaway-gtfs-modules.git</developerConnection>
+    <url>https://github.com/openmove/onebusaway-gtfs-modules</url>
+    <tag>onebusaway-gtfs-modules-1.3.91</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/openmove/onebusaway-gtfs-modules/issues</url>
+  </issueManagement>
+
   <distributionManagement>
     <site>
       <id>${site_id}</id>
