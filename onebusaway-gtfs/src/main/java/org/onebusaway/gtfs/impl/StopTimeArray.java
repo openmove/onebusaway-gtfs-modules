@@ -21,7 +21,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import org.onebusaway.gtfs.model.Stop;
+import org.onebusaway.gtfs.model.Area;
+import org.onebusaway.gtfs.model.BookingRule;
+import org.onebusaway.gtfs.model.StopLocation;
 import org.onebusaway.gtfs.model.StopTime;
 import org.onebusaway.gtfs.model.StopTimeProxy;
 import org.onebusaway.gtfs.model.Trip;
@@ -32,7 +34,11 @@ public class StopTimeArray extends AbstractList<StopTime> {
 
   private Trip[] trips = new Trip[0];
 
-  private Stop[] stops = new Stop[0];
+  private StopLocation[] stops = new StopLocation[0];
+
+  private Area[] startServiceAreas = new Area[0];
+
+  private Area[] endServiceAreas = new Area[0];
 
   private int[] arrivalTimes = new int[0];
 
@@ -52,6 +58,20 @@ public class StopTimeArray extends AbstractList<StopTime> {
 
   private double[] shapeDistTraveled = new double[0];
 
+  private BookingRule[] pickupBookingRules = new BookingRule[0];
+
+  private BookingRule[] dropOffBookingRules = new BookingRule[0];
+
+  private double[] meanOffsets = new double[0];
+
+  private double[] safeOffsets = new double[0];
+  
+  private double[] meanFactors = new double[0];
+
+  private double[] safeFactors = new double[0];
+
+  private String[] freeRunningFlags = new String[0];
+  
   public void trimToSize() {
     setLength(size);
   }
@@ -66,6 +86,8 @@ public class StopTimeArray extends AbstractList<StopTime> {
     size++;
     ensureCapacity(size);
     trips[index] = stopTime.getTrip();
+    startServiceAreas[index] = stopTime.getStartServiceArea();
+    endServiceAreas[index] = stopTime.getEndServiceArea();
     stops[index] = stopTime.getStop();
     arrivalTimes[index] = stopTime.getArrivalTime();
     departureTimes[index] = stopTime.getDepartureTime();
@@ -76,6 +98,14 @@ public class StopTimeArray extends AbstractList<StopTime> {
     pickupTypes[index] = stopTime.getPickupType();
     dropOffTypes[index] = stopTime.getDropOffType();
     shapeDistTraveled[index] = stopTime.getShapeDistTraveled();
+    pickupBookingRules[index] = stopTime.getPickupBookingRule();
+    dropOffBookingRules[index] = stopTime.getDropOffBookingRule();    
+    safeOffsets[index] = stopTime.getSafeDurationOffset();
+    safeFactors[index] = stopTime.getSafeDurationFactor();
+    meanOffsets[index] = stopTime.getMeanDurationOffset();
+    meanFactors[index] = stopTime.getMeanDurationFactor();
+    freeRunningFlags[index] = stopTime.getFreeRunningFlag();
+
     return true;
   }
 
@@ -118,6 +148,8 @@ public class StopTimeArray extends AbstractList<StopTime> {
 
   private void setLength(int newLength) {
     this.trips = Arrays.copyOf(this.trips, newLength);
+    this.startServiceAreas = Arrays.copyOf(this.startServiceAreas, newLength);
+    this.endServiceAreas = Arrays.copyOf(this.endServiceAreas, newLength);
     this.stops = Arrays.copyOf(this.stops, newLength);
     this.arrivalTimes = Arrays.copyOf(this.arrivalTimes, newLength);
     this.departureTimes = Arrays.copyOf(this.departureTimes, newLength);
@@ -128,6 +160,13 @@ public class StopTimeArray extends AbstractList<StopTime> {
     this.pickupTypes = Arrays.copyOf(this.pickupTypes, newLength);
     this.dropOffTypes = Arrays.copyOf(this.dropOffTypes, newLength);
     this.shapeDistTraveled = Arrays.copyOf(this.shapeDistTraveled, newLength);
+    this.pickupBookingRules = Arrays.copyOf(this.pickupBookingRules, newLength);
+    this.dropOffBookingRules = Arrays.copyOf(this.dropOffBookingRules, newLength);
+    this.safeOffsets = Arrays.copyOf(this.safeOffsets, newLength);
+    this.safeFactors = Arrays.copyOf(this.safeFactors, newLength);
+    this.meanOffsets = Arrays.copyOf(this.meanOffsets, newLength);
+    this.meanFactors = Arrays.copyOf(this.meanFactors, newLength);
+    this.freeRunningFlags = Arrays.copyOf(this.freeRunningFlags, newLength);
   }
 
   private class StopTimeIterator implements Iterator<StopTime> {
@@ -185,6 +224,26 @@ public class StopTimeArray extends AbstractList<StopTime> {
     }
 
     @Override
+    public Area getStartServiceArea() {
+      return startServiceAreas[index];
+    }
+
+    @Override
+    public void setStartServiceArea(Area area) {
+      startServiceAreas[index] = area;
+    }
+
+    @Override
+    public Area getEndServiceArea() {
+      return endServiceAreas[index];
+    }
+
+    @Override
+    public void setEndServiceArea(Area area) {
+      endServiceAreas[index] = area;
+    }
+
+    @Override
     public int getStopSequence() {
       return stopSequences[index];
     }
@@ -195,12 +254,12 @@ public class StopTimeArray extends AbstractList<StopTime> {
     }
 
     @Override
-    public Stop getStop() {
+    public StopLocation getStop() {
       return stops[index];
     }
 
     @Override
-    public void setStop(Stop stop) {
+    public void setStop(StopLocation stop) {
       stops[index] = stop;
     }
 
@@ -243,7 +302,7 @@ public class StopTimeArray extends AbstractList<StopTime> {
     public void clearDepartureTime() {
       departureTimes[index] = StopTime.MISSING_VALUE;
     }
-    
+
     @Override
     public boolean isTimepointSet() {
       return timepoints[index] != StopTime.MISSING_VALUE;
@@ -322,6 +381,76 @@ public class StopTimeArray extends AbstractList<StopTime> {
     @Override
     public void clearShapeDistTraveled() {
       shapeDistTraveled[index] = StopTime.MISSING_VALUE;
+    }
+
+    @Override
+    public BookingRule getPickupBookingRule() {
+      return pickupBookingRules[index];
+    }
+
+    @Override
+    public void setPickupBookingRule(BookingRule pickupBookingRule) {
+      pickupBookingRules[index] = pickupBookingRule;
+    }
+
+    @Override
+    public BookingRule getDropOffBookingRule() {
+      return dropOffBookingRules[index];
+    }
+
+    @Override
+    public void setDropOffBookingRule(BookingRule dropOffBookingRule) {
+      dropOffBookingRules[index] = dropOffBookingRule;
+    }
+
+    @Override
+    public double getMeanDurationFactor() {
+      return meanOffsets[index];
+    }
+
+    @Override
+    public void setMeanDurationFactor(double meanDurationFactor) {
+      meanFactors[index] = meanDurationFactor;
+    }
+
+    @Override
+    public double getMeanDurationOffset() {
+      return meanOffsets[index];
+    }
+
+    @Override
+    public void setMeanDurationOffset(double meanDurationOffset) {
+      meanOffsets[index] = meanDurationOffset;
+    }
+
+    @Override
+    public double getSafeDurationFactor() {
+      return safeFactors[index];
+    }
+
+    @Override
+    public void setSafeDurationFactor(double safeDurationFactor) {
+      safeFactors[index] = safeDurationFactor;
+    }
+
+    @Override
+    public double getSafeDurationOffset() {
+      return safeOffsets[index];
+    }
+
+    @Override
+    public void setSafeDurationOffset(double safeDurationOffset) {
+      safeOffsets[index] = safeDurationOffset;
+    }
+
+    @Override
+    public String getFreeRunningFlag() {
+      return freeRunningFlags[index];
+    }
+
+    @Override
+    public void setFreeRunningFlag(String freeRunningFlag) {
+      freeRunningFlags[index] = freeRunningFlag;
     }
   }
 }

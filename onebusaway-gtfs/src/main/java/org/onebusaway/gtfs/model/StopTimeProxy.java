@@ -29,15 +29,23 @@ public interface StopTimeProxy {
 
   public Trip getTrip();
 
+  public Area getStartServiceArea();
+
+  public void setStartServiceArea(Area area);
+
+  public Area getEndServiceArea();
+
+  public void setEndServiceArea(Area area);
+
   public void setTrip(Trip trip);
 
   public int getStopSequence();
 
   public void setStopSequence(int stopSequence);
 
-  public Stop getStop();
+  public StopLocation getStop();
 
-  public void setStop(Stop stop);
+  public void setStop(StopLocation stop);
 
   public boolean isArrivalTimeSet();
 
@@ -86,4 +94,32 @@ public interface StopTimeProxy {
   public void setShapeDistTraveled(double shapeDistTraveled);
 
   public void clearShapeDistTraveled();
+
+  public BookingRule getPickupBookingRule();
+
+  public void setPickupBookingRule(BookingRule pickupBookingRule);
+
+  public BookingRule getDropOffBookingRule();
+
+  public void setDropOffBookingRule(BookingRule dropOffBookingRule);
+
+  public double getMeanDurationFactor();
+	
+  public void setMeanDurationFactor(double meanDurationFactor);	
+	
+  public double getMeanDurationOffset();
+	
+  public void setMeanDurationOffset(double meanDurationOffset);
+	
+  public double getSafeDurationFactor();
+	
+  public void setSafeDurationFactor(double safeDurationFactor);
+
+  public double getSafeDurationOffset();
+	
+  public void setSafeDurationOffset(double safeDurationOffset);
+
+  public String getFreeRunningFlag();
+
+  public void setFreeRunningFlag(String freeRunningFlag);
 }

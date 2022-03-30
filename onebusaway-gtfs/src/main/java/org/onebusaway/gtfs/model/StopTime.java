@@ -20,6 +20,7 @@ import org.onebusaway.csv_entities.schema.annotations.CsvField;
 import org.onebusaway.csv_entities.schema.annotations.CsvFields;
 import org.onebusaway.gtfs.serialization.mappings.EntityFieldMappingFactory;
 import org.onebusaway.gtfs.serialization.mappings.StopTimeFieldMappingFactory;
+import org.onebusaway.gtfs.serialization.mappings.StopLocationFieldMappingFactory;
 
 @CsvFields(filename = "stop_times.txt")
 public final class StopTime extends IdentityBean<Integer> implements
@@ -29,25 +30,52 @@ public final class StopTime extends IdentityBean<Integer> implements
 
   public static final int MISSING_VALUE = -999;
 
+  public static final int MISSING_FLEX_VALUE = 1;
+
   @CsvField(ignore = true)
   private int id;
 
   @CsvField(name = "trip_id", mapping = EntityFieldMappingFactory.class)
   private Trip trip;
 
-  @CsvField(name = "stop_id", mapping = EntityFieldMappingFactory.class)
-  private Stop stop;
+  @CsvField(name = "stop_id", mapping = StopLocationFieldMappingFactory.class)
+  private StopLocation stop;
 
   @CsvField(optional = true, mapping = StopTimeFieldMappingFactory.class)
   private int arrivalTime = MISSING_VALUE;
 
   @CsvField(optional = true, mapping = StopTimeFieldMappingFactory.class)
   private int departureTime = MISSING_VALUE;
-  
+
+  /**
+   * @deprecated
+   * GTFS-Flex v2.1 renamed this field. Use {@link #startPickupDropOffWindow} instead.
+   */
+  @Deprecated
+  @CsvField(optional = true, mapping = StopTimeFieldMappingFactory.class)
+  private int minArrivalTime = MISSING_VALUE;
+
+  @CsvField(optional = true, name = "start_pickup_dropoff_window", mapping = StopTimeFieldMappingFactory.class)
+  private int startPickupDropOffWindow = MISSING_VALUE;
+
+  /**
+   * @deprecated
+   * GTFS-Flex v2.1 renamed this field. Use {@link #endPickupDropOffWindow} instead.
+   */
+  @Deprecated
+  @CsvField(optional = true, mapping = StopTimeFieldMappingFactory.class)
+  private int maxDepartureTime = MISSING_VALUE;
+
+  @CsvField(optional = true, name = "end_pickup_dropoff_window", mapping = StopTimeFieldMappingFactory.class)
+  private int endPickupDropOffWindow = MISSING_VALUE;
+
   @CsvField(optional = true)
   private int timepoint = MISSING_VALUE;
 
   private int stopSequence;
+
+  @CsvField(optional = true)
+  private Integer toStopSequence;
 
   @CsvField(optional = true)
   private String stopHeadsign;
@@ -65,10 +93,10 @@ public final class StopTime extends IdentityBean<Integer> implements
   private double shapeDistTraveled = MISSING_VALUE;
 
   @CsvField(optional = true)
-  private int continuousPickup = MISSING_VALUE;
+  private int continuousPickup = MISSING_FLEX_VALUE;
 
   @CsvField(optional = true)
-  private int continuousDropOff = MISSING_VALUE;
+  private int continuousDropOff = MISSING_FLEX_VALUE;
 
   @CsvField(optional = true, name = "start_service_area_id", mapping = EntityFieldMappingFactory.class, order = -2)
   private Area startServiceArea;
@@ -84,6 +112,13 @@ public final class StopTime extends IdentityBean<Integer> implements
 
   @CsvField(ignore = true)
   private transient StopTimeProxy proxy = null;
+
+  /** Support for booking rules in GTFS-Flex 2.1 */
+  @CsvField(optional = true, name = "pickup_booking_rule_id", mapping = EntityFieldMappingFactory.class, order = -2)
+  private BookingRule pickupBookingRule;
+
+  @CsvField(optional = true, name = "drop_off_booking_rule_id", mapping = EntityFieldMappingFactory.class, order = -2)
+  private BookingRule dropOffBookingRule;
 
   /** This is a Conveyal extension to the GTFS spec to support Seattle on/off peak fares. */
   @CsvField(optional = true)
@@ -101,6 +136,22 @@ public final class StopTime extends IdentityBean<Integer> implements
   @CsvField(optional = true, name = "note_id", mapping = EntityFieldMappingFactory.class, order = -1)
   private Note note;
 
+  // See https://github.com/MobilityData/gtfs-flex/blob/master/spec/reference.md
+  @CsvField(optional = true, name = "mean_duration_factor")
+  private double meanDurationFactor = MISSING_VALUE;
+
+  @CsvField(optional = true, name = "mean_duration_offset")
+  private double meanDurationOffset = MISSING_VALUE;
+    
+  @CsvField(optional = true, name = "safe_duration_factor")
+  private double safeDurationFactor = MISSING_VALUE;
+
+  @CsvField(optional = true, name = "safe_duration_offset")
+  private double safeDurationOffset = MISSING_VALUE;
+
+  @CsvField(optional = true, name = "free_running_flag")
+  private String freeRunningFlag;
+  
   public StopTime() {
 
   }
@@ -111,12 +162,19 @@ public final class StopTime extends IdentityBean<Integer> implements
     this.dropOffType = st.dropOffType;
     this.id = st.id;
     this.pickupType = st.pickupType;
+    this.minArrivalTime = st.minArrivalTime;
+    this.startPickupDropOffWindow = st.startPickupDropOffWindow;
+    this.maxDepartureTime = st.maxDepartureTime;
+    this.endPickupDropOffWindow = st.endPickupDropOffWindow;
+    this.continuousPickup = st.continuousPickup;
+    this.continuousDropOff = st.continuousDropOff;
     this.routeShortName = st.routeShortName;
     this.shapeDistTraveled = st.shapeDistTraveled;
     this.farePeriodId = st.farePeriodId;
     this.stop = st.stop;
     this.stopHeadsign = st.stopHeadsign;
     this.stopSequence = st.stopSequence;
+    this.toStopSequence = st.toStopSequence;
     this.timepoint = st.timepoint;
     this.trip = st.trip;
     this.startServiceArea = st.startServiceArea;
@@ -126,6 +184,13 @@ public final class StopTime extends IdentityBean<Integer> implements
     this.departureBuffer = st.departureBuffer;
     this.track = st.track;
     this.note = st.note;
+    this.pickupBookingRule = st.pickupBookingRule;
+    this.dropOffBookingRule = st.dropOffBookingRule;
+    this.safeDurationFactor= st.safeDurationFactor;
+    this.safeDurationOffset= st.safeDurationOffset;
+    this.meanDurationOffset= st.meanDurationOffset;
+    this.meanDurationFactor= st.meanDurationFactor;
+    this.freeRunningFlag = st.freeRunningFlag;
   }
 
   public Integer getId() {
@@ -173,14 +238,22 @@ public final class StopTime extends IdentityBean<Integer> implements
     this.stopSequence = stopSequence;
   }
 
-  public Stop getStop() {
+  public Integer getToStopSequence() {
+    return toStopSequence;
+  }
+
+  public void setToStopSequence(Integer toStopSequence) {
+    this.toStopSequence = toStopSequence;
+  }
+
+  public StopLocation getStop() {
     if (proxy != null) {
       return proxy.getStop();
     }
     return stop;
   }
 
-  public void setStop(Stop stop) {
+  public void setStop(StopLocation stop) {
     if (proxy != null) {
       proxy.setStop(stop);
       return;
@@ -253,7 +326,51 @@ public final class StopTime extends IdentityBean<Integer> implements
     }
     this.departureTime = MISSING_VALUE;
   }
-  
+
+  @Deprecated
+  public int getMinArrivalTime() {
+    return minArrivalTime;
+  }
+
+  @Deprecated
+  public void setMinArrivalTime(int minArrivalTime) {
+    this.minArrivalTime = minArrivalTime;
+  }
+
+  public int getStartPickupDropOffWindow() {
+    if (startPickupDropOffWindow != MISSING_VALUE) {
+      return startPickupDropOffWindow;
+    } else {
+      return minArrivalTime;
+    }
+  }
+
+  public void setStartPickupDropOffWindow(int startPickupDropOffWindow) {
+    this.startPickupDropOffWindow = startPickupDropOffWindow;
+  }
+
+  @Deprecated
+  public int getMaxDepartureTime() {
+    return maxDepartureTime;
+  }
+
+  @Deprecated
+  public void setMaxDepartureTime(int maxDepartureTime) {
+    this.maxDepartureTime = maxDepartureTime;
+  }
+
+  public int getEndPickupDropOffWindow() {
+    if (endPickupDropOffWindow != MISSING_VALUE) {
+      return endPickupDropOffWindow;
+    } else {
+      return maxDepartureTime;
+    }
+  }
+
+  public void setEndPickupDropOffWindow(int endPickupDropOffWindow) {
+    this.endPickupDropOffWindow = endPickupDropOffWindow;
+  }
+
   @Override
   public boolean isTimepointSet() {
     if (proxy != null) {
@@ -405,18 +522,33 @@ public final class StopTime extends IdentityBean<Integer> implements
   }
 
   public Area getStartServiceArea() {
+    if (proxy != null) {
+      return proxy.getStartServiceArea();
+    }
     return startServiceArea;
   }
 
   public void setStartServiceArea(Area startServiceArea) {
+    if (proxy != null) {
+      proxy.setStartServiceArea(startServiceArea);
+      return;
+    }
     this.startServiceArea = startServiceArea;
   }
 
   public Area getEndServiceArea() {
+    if (proxy != null) {
+      return proxy.getEndServiceArea();
+    }
     return endServiceArea;
   }
 
+
   public void setEndServiceArea(Area endServiceArea) {
+    if (proxy != null) {
+      proxy.setEndServiceArea(endServiceArea);
+      return;
+    }
     this.endServiceArea = endServiceArea;
   }
 
@@ -464,6 +596,36 @@ public final class StopTime extends IdentityBean<Integer> implements
     return this.getStopSequence() - o.getStopSequence();
   }
 
+  public BookingRule getPickupBookingRule() {
+    if (proxy != null) {
+      return proxy.getPickupBookingRule();
+    }
+    return pickupBookingRule;
+  }
+
+  public void setPickupBookingRule(BookingRule pickupBookingRule) {
+    if (proxy != null) {
+      proxy.setPickupBookingRule(pickupBookingRule);
+      return;
+    }
+    this.pickupBookingRule = pickupBookingRule;
+  }
+
+  public BookingRule getDropOffBookingRule() {
+    if (proxy != null) {
+      return proxy.getDropOffBookingRule();
+    }
+    return dropOffBookingRule;
+  }
+
+  public void setDropOffBookingRule(BookingRule dropOffBookingRule) {
+    if (proxy != null) {
+      proxy.setDropOffBookingRule(dropOffBookingRule);
+      return;
+    }
+    this.dropOffBookingRule = dropOffBookingRule;
+  }
+
   /**
    * When set, all interactions with this stop time will be redirected through
    * this proxy.
@@ -492,5 +654,66 @@ public final class StopTime extends IdentityBean<Integer> implements
         + "-"
         + StopTimeFieldMappingFactory.getSecondsAsString(getDepartureTime())
         + ")";
+  }
+
+	public double getMeanDurationFactor() {
+		return meanDurationFactor;
+	}
+	
+	public void setMeanDurationFactor(double meanDurationFactor) {
+		this.meanDurationFactor = meanDurationFactor;
+	}
+	
+	public double getMeanDurationOffset() {
+		return meanDurationOffset;
+	}
+	
+	public void setMeanDurationOffset(double meanDurationOffset) {
+		this.meanDurationOffset = meanDurationOffset;
+	}
+	
+	public double getSafeDurationFactor() {
+	    if (proxy != null) {
+	        return proxy.getSafeDurationFactor();
+	      }
+	      return this.safeDurationFactor;
+	}
+	
+	public void setSafeDurationFactor(double safeDurationFactor) {
+	    if (proxy != null) {
+	        proxy.setSafeDurationFactor(safeDurationFactor);
+	        return;
+	      }
+	      this.safeDurationFactor = safeDurationFactor;
+	}
+	
+	public double getSafeDurationOffset() {
+	    if (proxy != null) {
+	        return proxy.getSafeDurationOffset();
+	      }
+	      return this.safeDurationOffset;
+	}
+	
+	public void setSafeDurationOffset(double safeDurationOffset) {
+	    if (proxy != null) {
+	        proxy.setSafeDurationOffset(safeDurationOffset);
+	        return;
+	      }
+	    this.safeDurationOffset = safeDurationOffset;
+	}
+
+  public String getFreeRunningFlag() {
+    if (proxy != null) {
+      return proxy.getFreeRunningFlag();
+    }
+    return freeRunningFlag;
+  }
+
+  public void setFreeRunningFlag(String freeRunningFlag) {
+    if (proxy != null) {
+      proxy.setFreeRunningFlag(freeRunningFlag);
+      return;
+    }
+    this.freeRunningFlag = freeRunningFlag;
   }
 }
