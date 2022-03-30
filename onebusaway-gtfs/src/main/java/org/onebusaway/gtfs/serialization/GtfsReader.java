@@ -17,6 +17,7 @@
 package org.onebusaway.gtfs.serialization;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,57 +29,36 @@ import org.onebusaway.csv_entities.CsvEntityReader;
 import org.onebusaway.csv_entities.CsvInputSource;
 import org.onebusaway.csv_entities.CsvTokenizerStrategy;
 import org.onebusaway.csv_entities.EntityHandler;
+import org.onebusaway.csv_entities.exceptions.CsvEntityIOException;
 import org.onebusaway.csv_entities.schema.DefaultEntitySchemaFactory;
 import org.onebusaway.gtfs.impl.GtfsDaoImpl;
-import org.onebusaway.gtfs.model.Agency;
-import org.onebusaway.gtfs.model.AgencyAndId;
-import org.onebusaway.gtfs.model.Area;
-import org.onebusaway.gtfs.model.Block;
-import org.onebusaway.gtfs.model.FareAttribute;
-import org.onebusaway.gtfs.model.FareRule;
-import org.onebusaway.gtfs.model.FeedInfo;
-import org.onebusaway.gtfs.model.Frequency;
-import org.onebusaway.gtfs.model.IdentityBean;
-import org.onebusaway.gtfs.model.Level;
-import org.onebusaway.gtfs.model.Note;
-import org.onebusaway.gtfs.model.Pathway;
-import org.onebusaway.gtfs.model.Ridership;
-import org.onebusaway.gtfs.model.Route;
-import org.onebusaway.gtfs.model.ServiceCalendar;
-import org.onebusaway.gtfs.model.ServiceCalendarDate;
-import org.onebusaway.gtfs.model.ShapePoint;
-import org.onebusaway.gtfs.model.Stop;
-import org.onebusaway.gtfs.model.StopTime;
-import org.onebusaway.gtfs.model.Transfer;
-import org.onebusaway.gtfs.model.Translation;
-import org.onebusaway.gtfs.model.Trip;
-import org.onebusaway.gtfs.model.Zone;
+import org.onebusaway.gtfs.model.*;
 import org.onebusaway.gtfs.services.GenericMutableDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GtfsReader extends CsvEntityReader {
 
-	private final Logger _log = LoggerFactory.getLogger(GtfsReader.class);
+  private final Logger _log = LoggerFactory.getLogger(GtfsReader.class);
 
-	public static final String KEY_CONTEXT = GtfsReader.class.getName()
-			+ ".context";
+  public static final String KEY_CONTEXT = GtfsReader.class.getName()
+      + ".context";
 
-	private List<Class<?>> _entityClasses = new ArrayList<>();
+  private List<Class<?>> _entityClasses = new ArrayList<Class<?>>();
 
-	private final GtfsReaderContextImpl _context = new GtfsReaderContextImpl();
+  private GtfsReaderContextImpl _context = new GtfsReaderContextImpl();
 
-	private GenericMutableDao _entityStore = new GtfsDaoImpl();
+  private GenericMutableDao _entityStore = new GtfsDaoImpl();
 
-	private List<Agency> _agencies = new ArrayList<>();
+  private List<Agency> _agencies = new ArrayList<Agency>();
 
-	private final Map<Class<?>, Map<String, String>> _agencyIdsByEntityClassAndId = new HashMap<>();
+  private Map<Class<?>, Map<String, String>> _agencyIdsByEntityClassAndId = new HashMap<Class<?>, Map<String, String>>();
 
-	private String _defaultAgencyId;
+  private String _defaultAgencyId;
 
-	private final Map<String, String> _agencyIdMapping = new HashMap<>();
+  private Map<String, String> _agencyIdMapping = new HashMap<String, String>();
 
-	private boolean _overwriteDuplicates = false;
+  private boolean _overwriteDuplicates = false;
 
 	public GtfsReader() {
 
@@ -103,6 +83,7 @@ public class GtfsReader extends CsvEntityReader {
 		this._entityClasses.add(Ridership.class);
 		this._entityClasses.add(Translation.class);
 		this._entityClasses.add(Zone.class);
+		this._entityClasses.add(Vehicle.class);
 
 		CsvTokenizerStrategy tokenizerStrategy = new CsvTokenizerStrategy();
 		tokenizerStrategy.getCsvParser().setTrimInitialWhitespace(true);
@@ -157,191 +138,208 @@ public class GtfsReader extends CsvEntityReader {
 		this._agencyIdMapping.put(fromAgencyId, toAgencyId);
 	}
 
-	public GtfsReaderContext getGtfsReaderContext() {
-		return this._context;
-	}
+  public GtfsReaderContext getGtfsReaderContext() {
+    return _context;
+  }
+  
+  public GenericMutableDao getEntityStore() {
+    return _entityStore;
+  }
 
-	public GenericMutableDao getEntityStore() {
-		return this._entityStore;
-	}
+  public void setEntityStore(GenericMutableDao entityStore) {
+    _entityStore = entityStore;
+  }
 
-	public void setEntityStore(GenericMutableDao entityStore) {
-		this._entityStore = entityStore;
-	}
+  public List<Class<?>> getEntityClasses() {
+    return _entityClasses;
+  }
 
-	public List<Class<?>> getEntityClasses() {
-		return this._entityClasses;
-	}
+  public void setEntityClasses(List<Class<?>> entityClasses) {
+    _entityClasses = entityClasses;
+  }
 
-	public void setEntityClasses(List<Class<?>> entityClasses) {
-		this._entityClasses = entityClasses;
-	}
+  public void setOverwriteDuplicates(boolean overwriteDuplicates) {
+    _overwriteDuplicates = overwriteDuplicates;
+  }
 
-	public void setOverwriteDuplicates(boolean overwriteDuplicates) {
-		this._overwriteDuplicates = overwriteDuplicates;
-	}
+  public void readEntities(Class<?> entityClass, Reader reader) throws IOException, CsvEntityIOException {
+    if (entityClass == Location.class) {
+      for (Location location : new LocationsGeoJSONReader(reader, getDefaultAgencyId()).read()) {
+        injectEntity(location);
+      }
+    } else {
+      super.readEntities(entityClass, reader);
+    }
+  }
 
-	public void run() throws IOException {
-		this.run(this.getInputSource());
-	}
+  public void run() throws IOException {
+    run(getInputSource());
+  }
 
-	public void run(CsvInputSource source) throws IOException {
+  public void run(CsvInputSource source) throws IOException {
 
-		List<Class<?>> classes = this.getEntityClasses();
+    List<Class<?>> classes = getEntityClasses();
 
-		this._entityStore.open();
+    _entityStore.open();
 
-		for (Class<?> entityClass : classes) {
-			this._log.info("reading entities: " + entityClass.getName());
+    for (Class<?> entityClass : classes) {
+      _log.info("reading entities: " + entityClass.getName());
 
-			this.readEntities(entityClass, source);
-			this._entityStore.flush();
-		}
+      readEntities(entityClass, source);
+      _entityStore.flush();
+    }
 
-		this._entityStore.close();
-	}
+    _entityStore.close();
+  }
 
-	/****
-	 * Protected Methods
-	 ****/
+  /****
+   * Protected Methods
+   ****/
 
-	protected DefaultEntitySchemaFactory createEntitySchemaFactory() {
-		return GtfsEntitySchemaFactory.createEntitySchemaFactory();
-	}
+  protected DefaultEntitySchemaFactory createEntitySchemaFactory() {
+    return GtfsEntitySchemaFactory.createEntitySchemaFactory();
+  }
 
-	protected Object getEntity(Class<?> entityClass, Serializable id) {
-		if (entityClass == null) {
-			throw new IllegalArgumentException("entity class must not be null");
-		}
-		if (id == null) {
-			throw new IllegalArgumentException("entity id must not be null");
-		}
-		return this._entityStore.getEntityForId(entityClass, id);
-	}
+  protected Object getEntity(Class<?> entityClass, Serializable id) {
+    if (entityClass == null)
+      throw new IllegalArgumentException("entity class must not be null");
+    if (id == null)
+      throw new IllegalArgumentException("entity id must not be null");
+    return _entityStore.getEntityForId(entityClass, id);
+  }
 
-	protected String getTranslatedAgencyId(String agencyId) {
-		String id = this._agencyIdMapping.get(agencyId);
-		if (id != null) {
-			return id;
-		}
-		return agencyId;
-	}
+  protected String getTranslatedAgencyId(String agencyId) {
+    String id = _agencyIdMapping.get(agencyId);
+    if (id != null)
+      return id;
+    return agencyId;
+  }
 
-	protected String getAgencyForEntity(Class<?> entityType, String entityId) {
+  protected String getAgencyForEntity(Class<?> entityType, String entityId) {
 
-		Map<String, String> agencyIdsByEntityId = this._agencyIdsByEntityClassAndId.get(entityType);
+    Map<String, String> agencyIdsByEntityId = _agencyIdsByEntityClassAndId.get(entityType);
 
-		if (agencyIdsByEntityId != null) {
-			String id = agencyIdsByEntityId.get(entityId);
-			if (id != null) {
-				return id;
-			}
-		}
+    if (agencyIdsByEntityId != null) {
+      String id = agencyIdsByEntityId.get(entityId);
+      if (id != null)
+        return id;
+    }
 
-		throw new EntityReferenceNotFoundException(entityType, entityId);
-	}
+    throw new EntityReferenceNotFoundException(entityType, entityId);
+  }
 
 
-	/****
-	 * Private Internal Classes
-	 ****/
+    /****
+   * Private Internal Classes
+   ****/
 
-	private class EntityHandlerImpl implements EntityHandler {
+  private class EntityHandlerImpl implements EntityHandler {
 
-		@Override
-		public void handleEntity(Object entity) {
+    public void handleEntity(Object entity) {
 
-			if (entity instanceof Agency) {
-				Agency agency = (Agency) entity;
-				if (agency.getId() == null) {
-					if (GtfsReader.this._defaultAgencyId == null) {
-						agency.setId(agency.getName());
-					} else {
-						agency.setId(GtfsReader.this._defaultAgencyId);
-					}
-				}
+      if (entity instanceof Agency) {
+        Agency agency = (Agency) entity;
+        if (agency.getId() == null) {
+          if (_defaultAgencyId == null)
+            agency.setId(agency.getName());
+          else
+            agency.setId(_defaultAgencyId);
+        }
 
-				// If we already have this agency from a previous load, then we don't
-				// add it or save it to the entity store
-				if (GtfsReader.this._agencies.contains(agency)) {
-					return;
-				}
+        // If we already have this agency from a previous load, then we don't
+        // add it or save it to the entity store
+        if (_agencies.contains(agency))
+          return;
 
-				GtfsReader.this._agencies.add((Agency) entity);
-			} else if (entity instanceof Pathway) {
-				Pathway pathway = (Pathway) entity;
-				this.registerAgencyId(Pathway.class, pathway.getId());
-			} else if (entity instanceof Level) {
-				Level level = (Level) entity;
-				this.registerAgencyId(Level.class, level.getId());
-			} else if (entity instanceof Route) {
-				Route route = (Route) entity;
-				this.registerAgencyId(Route.class, route.getId());
-			} else if (entity instanceof Trip) {
-				Trip trip = (Trip) entity;
-				this.registerAgencyId(Trip.class, trip.getId());
-			} else if (entity instanceof Stop) {
-				Stop stop = (Stop) entity;
-				this.registerAgencyId(Stop.class, stop.getId());
-			} else if (entity instanceof FareAttribute) {
-				FareAttribute fare = (FareAttribute) entity;
-				this.registerAgencyId(FareAttribute.class, fare.getId());
-			} else if (entity instanceof Note) {
-				Note note = (Note) entity;
-				this.registerAgencyId(Note.class, note.getId());
-			} else if (entity instanceof Area) {
-				Area area = (Area) entity;
-				this.registerAgencyId(Area.class, area.getId());
-			}
+        _agencies.add((Agency) entity);
+      } else if (entity instanceof BookingRule) {
+        BookingRule bookingRule = (BookingRule) entity;
+        registerAgencyId(BookingRule.class, bookingRule.getId());
+      } else if (entity instanceof Pathway) {
+        Pathway pathway = (Pathway) entity;
+        registerAgencyId(Pathway.class, pathway.getId());
+      } else if (entity instanceof Level) {
+        Level level = (Level) entity;
+        registerAgencyId(Level.class, level.getId());
+      } else if (entity instanceof Route) {
+        Route route = (Route) entity;
+        registerAgencyId(Route.class, route.getId());
+      } else if (entity instanceof Trip) {
+        Trip trip = (Trip) entity;
+        registerAgencyId(Trip.class, trip.getId());
+      } else if (entity instanceof Stop) {
+        Stop stop = (Stop) entity;
+        registerAgencyId(Stop.class, stop.getId());
+      } else if (entity instanceof FareAttribute) {
+        FareAttribute fare = (FareAttribute) entity;
+        registerAgencyId(FareAttribute.class, fare.getId());
+      } else if (entity instanceof Note) {
+        Note note = (Note) entity;
+        registerAgencyId(Note.class, note.getId());
+      } else if (entity instanceof Area) {
+        Area area = (Area) entity;
+        registerAgencyId(Area.class, area.getId());
+      } else if (entity instanceof Location) {
+        Location location = (Location) entity;
+        registerAgencyId(Location.class, location.getId());
+      } else if (entity instanceof LocationGroupElement) {
+        LocationGroupElement locationGroupElement = (LocationGroupElement) entity;
+        LocationGroup locationGroup = _entityStore.getEntityForId(LocationGroup.class, locationGroupElement.getLocationGroupId());
+        if (locationGroup == null) {
+          locationGroup = new LocationGroup();
+          locationGroup.setId(locationGroupElement.getLocationGroupId());
+          locationGroup.setName(locationGroupElement.getName());
+          _entityStore.saveEntity(locationGroup);
+        }
+        locationGroup.addLocation(locationGroupElement.getLocation());
+      } else if (entity instanceof Vehicle) {
+        Vehicle vehicle = (Vehicle) entity;
+        registerAgencyId(Vehicle.class, vehicle.getId());
+      }
 
-			if (entity instanceof IdentityBean<?>) {
-				GtfsReader.this._entityStore.saveEntity(entity);
-			}
+      if (entity instanceof IdentityBean<?>) {
+        _entityStore.saveEntity(entity);
+      }
 
-		}
+    }
 
-		private void registerAgencyId(Class<?> entityType, AgencyAndId id) {
+    private void registerAgencyId(Class<?> entityType, AgencyAndId id) {
 
-			Map<String, String> agencyIdsByEntityId = GtfsReader.this._agencyIdsByEntityClassAndId.get(entityType);
+      Map<String, String> agencyIdsByEntityId = _agencyIdsByEntityClassAndId.get(entityType);
 
-			if (agencyIdsByEntityId == null) {
-				agencyIdsByEntityId = new HashMap<>();
-				GtfsReader.this._agencyIdsByEntityClassAndId.put(entityType, agencyIdsByEntityId);
-			}
+      if (agencyIdsByEntityId == null) {
+        agencyIdsByEntityId = new HashMap<String, String>();
+        _agencyIdsByEntityClassAndId.put(entityType, agencyIdsByEntityId);
+      }
 
-			if (agencyIdsByEntityId.containsKey(id.getId()) && !GtfsReader.this._overwriteDuplicates) {
-				throw new DuplicateEntityException(entityType, id);
-			}
+      if (agencyIdsByEntityId.containsKey(id.getId()) && !_overwriteDuplicates) {
+        throw new DuplicateEntityException(entityType, id);
+      }
 
-			agencyIdsByEntityId.put(id.getId(), id.getAgencyId());
-		}
-	}
+      agencyIdsByEntityId.put(id.getId(), id.getAgencyId());
+    }
+  }
 
-	private class GtfsReaderContextImpl implements GtfsReaderContext {
+  private class GtfsReaderContextImpl implements GtfsReaderContext {
 
-		@Override
-		public Object getEntity(Class<?> entityClass, Serializable id) {
-			return GtfsReader.this.getEntity(entityClass, id);
-		}
+    public Object getEntity(Class<?> entityClass, Serializable id) {
+      return GtfsReader.this.getEntity(entityClass, id);
+    }
 
-		@Override
-		public String getDefaultAgencyId() {
-			return GtfsReader.this.getDefaultAgencyId();
-		}
+    public String getDefaultAgencyId() {
+      return GtfsReader.this.getDefaultAgencyId();
+    }
 
-		@Override
-		public List<Agency> getAgencies() {
-			return GtfsReader.this.getAgencies();
-		}
+    public List<Agency> getAgencies() {
+      return GtfsReader.this.getAgencies();
+    }
 
-		@Override
-		public String getAgencyForEntity(Class<?> entityType, String entityId) {
-			return GtfsReader.this.getAgencyForEntity(entityType, entityId);
-		}
+    public String getAgencyForEntity(Class<?> entityType, String entityId) {
+      return GtfsReader.this.getAgencyForEntity(entityType, entityId);
+    }
 
-		@Override
-		public String getTranslatedAgencyId(String agencyId) {
-			return GtfsReader.this.getTranslatedAgencyId(agencyId);
-		}
-	}
+    public String getTranslatedAgencyId(String agencyId) {
+      return GtfsReader.this.getTranslatedAgencyId(agencyId);
+    }
+  }
 }
