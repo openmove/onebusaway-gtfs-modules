@@ -50,6 +50,9 @@ public final class Agency extends IdentityBean<String> {
   @CsvField(optional = true)
   private String brandingUrl;
 
+  @CsvField(optional = true)
+  private String vatCode;
+
   public Agency() {
 
   }
@@ -64,6 +67,7 @@ public final class Agency extends IdentityBean<String> {
     this.brandingUrl = a.brandingUrl;
     this.email = a.email;
     this.fareUrl = a.fareUrl;
+    this.vatCode = a.vatCode;
   }
 
   public String getId() {
@@ -137,6 +141,15 @@ public final class Agency extends IdentityBean<String> {
   public void setBrandingUrl(String brandingUrl) {
     this.brandingUrl = brandingUrl;
   }
+
+  public String getVatCode() {
+    return vatCode;
+  }
+
+  public void setVatCode(String vatCode) {
+    this.vatCode = vatCode;
+  }
+
 
   public String toString() {
     return "<Agency " + this.id + ">";

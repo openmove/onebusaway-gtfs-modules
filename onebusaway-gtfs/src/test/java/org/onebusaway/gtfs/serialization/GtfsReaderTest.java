@@ -59,8 +59,8 @@ public class GtfsReaderTest {
         "4237385,1,599,1");
     gtfs.putLines(
         "agency.txt",
-        "agency_id,agency_name,agency_url,agency_timezone,agency_lang,agency_phone,agency_fare_url,agency_email",
-        "1,Agency,http://agency.gov/,America/Los_Angeles,en,555-1234,http://agency.gov/fares,agency@email.com");
+        "agency_id,agency_name,agency_url,agency_timezone,agency_lang,agency_phone,agency_fare_url,agency_email,agency_branding_url,agency_vat_code",
+        "1,Agency,http://agency.gov/,America/Los_Angeles,en,555-1234,http://agency.gov/fares,agency@email.com,http://agency.gov/logo.jpg,AA123BB");
     gtfs.putLines("levels.txt",
             "level_id,level_index,level_name",
             "L1,-1.3,Level One");
@@ -152,6 +152,8 @@ public class GtfsReaderTest {
     assertEquals("en", agency.getLang());
     assertEquals("555-1234", agency.getPhone());
     assertEquals("http://agency.gov/fares", agency.getFareUrl());
+    assertEquals("http://agency.gov/logo.jpg",agency.getBrandingUrl());
+    assertEquals("AA123BB",agency.getVatCode());
 
     Block block = dao.getBlockForId(1);
     assertNotNull(block);
