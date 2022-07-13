@@ -119,6 +119,11 @@ public class GtfsDataServiceImpl implements GtfsDataService {
     }
 
     @Override
+    public List<Stop> getStopsForZoneId(String zoneId) {
+        return _dao.getStopsForZoneId(zoneId);
+    }
+
+    @Override
     public FareRule getFareRuleForId(int id) {
         return _dao.getFareRuleForId(id);
     }
@@ -299,6 +304,16 @@ public class GtfsDataServiceImpl implements GtfsDataService {
     }
 
     @Override
+    public List<FareRule> getFareRulesForRoute(Route route) {
+        return _dao.getFareRulesForRoute(route);
+    }
+
+    @Override
+    public List<FareRule> getFareRulesForZoneId(String zoneId) {
+        return _dao.getFareRulesForZoneId(zoneId);
+    }
+
+    @Override
     public Collection<Ridership> getAllRiderships() {
         return _dao.getAllRiderships();
     }
@@ -421,5 +436,27 @@ public class GtfsDataServiceImpl implements GtfsDataService {
     @Override
     public Map<LocalizedServiceId, List<Date>> getPreviousArrivalServiceDates(ServiceIdIntervals serviceIdIntervals, long targetTime) {
         return _calendarService.getPreviousArrivalServiceDates(serviceIdIntervals, targetTime);
+    }
+
+    public Facility getFacilityForId(AgencyAndId id) { return getEntityForId(Facility.class, id);}
+    public FacilityProperty getFacilityPropertiesForId(AgencyAndId id) { return getEntityForId(FacilityProperty.class, id);}
+    public FacilityPropertyDefinition getFacilityPropertiesDefinitionsForId(AgencyAndId id) { return getEntityForId(FacilityPropertyDefinition.class, id);}
+    public RouteNameException getRouteNameExceptionForId(AgencyAndId id) { return getEntityForId(RouteNameException.class, id);}
+    public DirectionNameException getDirectionNameExceptionForId(AgencyAndId id) { return getEntityForId(DirectionNameException.class, id);}
+
+    public Collection<Facility> getAllFacilities() {
+        return getAllEntitiesForType(Facility.class);
+    }
+    public Collection<FacilityProperty> getAllFacilityProperties() {
+        return getAllEntitiesForType(FacilityProperty.class);
+    }
+    public Collection<FacilityPropertyDefinition> getAllFacilityPropertyDefinitions() {
+        return getAllEntitiesForType(FacilityPropertyDefinition.class);
+    }
+    public Collection<RouteNameException> getAllRouteNameExceptions() {
+        return getAllEntitiesForType(RouteNameException.class);
+    }
+    public Collection<DirectionNameException> getAllDirectionNameExceptions() {
+        return getAllEntitiesForType(DirectionNameException.class);
     }
 }
