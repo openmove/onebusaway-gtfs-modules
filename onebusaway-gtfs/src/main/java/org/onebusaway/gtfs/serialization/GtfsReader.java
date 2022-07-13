@@ -60,89 +60,93 @@ public class GtfsReader extends CsvEntityReader {
 
   private boolean _overwriteDuplicates = false;
 
-	public GtfsReader() {
+  public GtfsReader() {
 
-		this._entityClasses.add(Agency.class);
-		this._entityClasses.add(Block.class);
-		this._entityClasses.add(ShapePoint.class);
-		this._entityClasses.add(Note.class);
-		this._entityClasses.add(Area.class);
-		this._entityClasses.add(Route.class);
-		this._entityClasses.add(Level.class);
-		this._entityClasses.add(Stop.class);
-		this._entityClasses.add(Trip.class);
-		this._entityClasses.add(StopTime.class);
-		this._entityClasses.add(ServiceCalendar.class);
-		this._entityClasses.add(ServiceCalendarDate.class);
-		this._entityClasses.add(FareAttribute.class);
-		this._entityClasses.add(FareRule.class);
-		this._entityClasses.add(Frequency.class);
-		this._entityClasses.add(Pathway.class);
-		this._entityClasses.add(Transfer.class);
-		this._entityClasses.add(FeedInfo.class);
-		this._entityClasses.add(Ridership.class);
-		this._entityClasses.add(Translation.class);
-		this._entityClasses.add(Zone.class);
-		this._entityClasses.add(Vehicle.class);
-        this._entityClasses.add(Node.class);
+    _entityClasses.add(Agency.class);
+    _entityClasses.add(Block.class);
+    _entityClasses.add(ShapePoint.class);
+    _entityClasses.add(Note.class);
+    _entityClasses.add(Area.class);
+    _entityClasses.add(BookingRule.class);
+    _entityClasses.add(Route.class);
+    _entityClasses.add(Level.class);
+    _entityClasses.add(Stop.class);
+    _entityClasses.add(Location.class);
+    _entityClasses.add(LocationGroupElement.class);
+    _entityClasses.add(Trip.class);
+    _entityClasses.add(StopTime.class);
+    _entityClasses.add(ServiceCalendar.class);
+    _entityClasses.add(ServiceCalendarDate.class);
+    _entityClasses.add(FareAttribute.class);
+    _entityClasses.add(FareRule.class);
+    _entityClasses.add(Frequency.class);
+    _entityClasses.add(Pathway.class);
+    _entityClasses.add(Transfer.class);
+    _entityClasses.add(FeedInfo.class);
+    _entityClasses.add(Ridership.class);
+    _entityClasses.add(Translation.class);
+    _entityClasses.add(Vehicle.class);
+    _entityClasses.add(Node.class);
+    _entityClasses.add(Facility.class);
+    _entityClasses.add(FacilityPropertyDefinition.class);
+    _entityClasses.add(FacilityProperty.class);
+    _entityClasses.add(RouteNameException.class);
+    _entityClasses.add(DirectionNameException.class);
 
-		CsvTokenizerStrategy tokenizerStrategy = new CsvTokenizerStrategy();
-		tokenizerStrategy.getCsvParser().setTrimInitialWhitespace(true);
-		this.setTokenizerStrategy(tokenizerStrategy);
+    CsvTokenizerStrategy tokenizerStrategy = new CsvTokenizerStrategy();
+    tokenizerStrategy.getCsvParser().setTrimInitialWhitespace(true);
+    setTokenizerStrategy(tokenizerStrategy);
 
-		this.setTrimValues(true);
+    setTrimValues(true);
 
-		/**
-		 * Prep the Entity Schema Factories
-		 */
-		DefaultEntitySchemaFactory schemaFactory = this.createEntitySchemaFactory();
-		this.setEntitySchemaFactory(schemaFactory);
+    /**
+     * Prep the Entity Schema Factories
+     */
+    DefaultEntitySchemaFactory schemaFactory = createEntitySchemaFactory();
+    setEntitySchemaFactory(schemaFactory);
 
-		CsvEntityContext ctx = this.getContext();
-		ctx.put(GtfsReader.KEY_CONTEXT, this._context);
+    CsvEntityContext ctx = getContext();
+    ctx.put(KEY_CONTEXT, _context);
 
-		this.addEntityHandler(new EntityHandlerImpl());
-	}
+    addEntityHandler(new EntityHandlerImpl());
+  }
 
-	public void setLastModifiedTime(Long lastModifiedTime) {
-		if (lastModifiedTime != null) {
-			this.getContext().put("lastModifiedTime", lastModifiedTime);
-		}
-	}
-	public Long getLastModfiedTime() {
-		return (Long)this.getContext().get("lastModifiedTime");
-	}
+  public void setLastModifiedTime(Long lastModifiedTime) {
+    if (lastModifiedTime != null)
+      getContext().put("lastModifiedTime", lastModifiedTime);
+  }
+  public Long getLastModfiedTime() {
+    return (Long)getContext().get("lastModifiedTime");
+  }
 
-	public List<Agency> getAgencies() {
-		return this._agencies;
-	}
+  public List<Agency> getAgencies() {
+    return _agencies;
+  }
 
-	public void setAgencies(List<Agency> agencies) {
-		this._agencies = new ArrayList<>(agencies);
-	}
+  public void setAgencies(List<Agency> agencies) {
+    _agencies = new ArrayList<Agency>(agencies);
+  }
 
-	public void setDefaultAgencyId(String feedId) {
-		this._defaultAgencyId = feedId;
-	}
+  public void setDefaultAgencyId(String feedId) {
+    _defaultAgencyId = feedId;
+  }
 
-	public String getDefaultAgencyId() {
-		if (this._defaultAgencyId != null) {
-			return this._defaultAgencyId;
-		}
-		if (this._agencies.size() > 0) {
-			return this._agencies.get(0).getId();
-		}
-		throw new NoDefaultAgencyIdException();
-	}
+  public String getDefaultAgencyId() {
+    if (_defaultAgencyId != null)
+      return _defaultAgencyId;
+    if (_agencies.size() > 0)
+      return _agencies.get(0).getId();
+    throw new NoDefaultAgencyIdException();
+  }
 
-	public void addAgencyIdMapping(String fromAgencyId, String toAgencyId) {
-		this._agencyIdMapping.put(fromAgencyId, toAgencyId);
-	}
+  public void addAgencyIdMapping(String fromAgencyId, String toAgencyId) {
+    _agencyIdMapping.put(fromAgencyId, toAgencyId);
+  }
 
   public GtfsReaderContext getGtfsReaderContext() {
     return _context;
   }
-  
+
   public GenericMutableDao getEntityStore() {
     return _entityStore;
   }
@@ -296,6 +300,12 @@ public class GtfsReader extends CsvEntityReader {
       } else if (entity instanceof Vehicle) {
         Vehicle vehicle = (Vehicle) entity;
         registerAgencyId(Vehicle.class, vehicle.getId());
+      } else if (entity instanceof Facility){
+        Facility facility = (Facility) entity;
+        registerAgencyId(Facility.class, facility.getId());
+      } else if (entity instanceof FacilityPropertyDefinition){
+        FacilityPropertyDefinition facilityPropertyDefinition = (FacilityPropertyDefinition) entity;
+        registerAgencyId(FacilityPropertyDefinition.class, facilityPropertyDefinition.getId());
       }
 
       if (entity instanceof IdentityBean<?>) {
