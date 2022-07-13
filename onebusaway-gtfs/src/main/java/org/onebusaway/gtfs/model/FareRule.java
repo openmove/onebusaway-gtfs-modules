@@ -45,6 +45,9 @@ public final class FareRule extends IdentityBean<Integer> {
 	@CsvField(name = "instr_id", optional = true) /*TT routing hint*/
 	private String routingId;
 
+	@CsvField(optional = true)
+	private String identifier;
+
 	public FareRule() {
 
 	}
@@ -57,16 +60,17 @@ public final class FareRule extends IdentityBean<Integer> {
 		this.destinationId = fr.destinationId;
 		this.containsId = fr.containsId;
 		this.routingId = fr.routingId;
+		this.identifier = fr.identifier;
 	}
 
 	@Override
 	public Integer getId() {
-		return this.id;
+		return Integer.valueOf(this.id);
 	}
 
 	@Override
 	public void setId(Integer id) {
-		this.id = id;
+		this.id = id.intValue();
 	}
 
 	public FareAttribute getFare() {
@@ -117,8 +121,16 @@ public final class FareRule extends IdentityBean<Integer> {
 		this.routingId = routingId;
 	}
 
+	public String getIdentifier() {
+		return this.identifier;
+	}
+
+	public void setIdentifier(String identifier) {
+		this.identifier = identifier;
+	}
+
 	@Override
 	public String toString() {
-		return "<FareRule " + this.getId() + ">";
+		return "<FareRule " + this.getId() + " - " + this.getIdentifier() + " >";
 	}
 }
