@@ -40,7 +40,7 @@ public final class Node extends IdentityBean<Integer> {
 	@CsvField(name = "km_distance")
 	private int kmDistance;
 
-	@CsvField(name = "instr_id")
+	@CsvField(name = "instr_id", optional=true)
 	private String routingId;
 
 	@Override
