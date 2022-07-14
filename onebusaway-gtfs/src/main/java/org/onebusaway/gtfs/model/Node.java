@@ -17,80 +17,84 @@ package org.onebusaway.gtfs.model;
 
 import org.onebusaway.csv_entities.schema.annotations.CsvField;
 import org.onebusaway.csv_entities.schema.annotations.CsvFields;
-import org.onebusaway.gtfs.serialization.mappings.DefaultAgencyIdFieldMappingFactory;
-import org.onebusaway.gtfs.serialization.mappings.EntityFieldMappingFactory;
 
 /**
  * GTFS Extension representing network topology
  */
 @CsvFields(filename = "nodes.txt", required = false)
 public final class Node extends IdentityBean<Integer> {
-  private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-  @CsvField(ignore = true)
-  private int id;
+	@CsvField(ignore = true)
+	private int id;
 
-  @CsvField(name = "origin_id")
-  private String originId;
+	@CsvField(name = "origin_id")
+	private String originId;
 
-  @CsvField(name = "destination_id")
-  private String destinationId;
+	@CsvField(name = "destination_id")
+	private String destinationId;
 
-  @CsvField(name = "transit_id")
-  private String transitId;
+	@CsvField(name = "transit_id")
+	private String transitId;
 
-  @CsvField(name = "km_distance")
-  private int kmDistance;
+	@CsvField(name = "km_distance")
+	private int kmDistance;
 
-  @CsvField(name = "instr_id")
-  private String routingId;
+	@CsvField(name = "instr_id")
+	private String routingId;
 
-  @Override
-  public Integer getId() {
-    return this.id;
-  }
+	@Override
+	public Integer getId() {
+		return Integer.valueOf(this.id);
+	}
 
-  @Override
-  public void setId(Integer id) {
-    this.id = id;
-  }
+	@Override
+	public void setId(Integer id) {
+		this.id = id.intValue();
+	}
 
-  public String getOriginId() {
-    return this.originId;
-  }
+	public String getOriginId() {
+		return this.originId;
+	}
 
-  public void setOriginId(String originId) {
-    this.originId = originId;
-  }
+	public void setOriginId(String originId) {
+		this.originId = originId;
+	}
 
-  public String getDestinationId() {
-    return this.destinationId;
-  }
+	public String getDestinationId() {
+		return this.destinationId;
+	}
 
-  public void setDestinationZone(String destinationId) {
-    this.destinationId = destinationId;
-  }
+	public void setDestinationId(String destinationId) {
+		this.destinationId = destinationId;
+	}
 
+	public String getTransitId() {
+		return this.transitId;
+	}
 
-  public String getTransitId() {
-    return this.transitId;
-  }
+	public void setTransitId(String transitId) {
+		this.transitId = transitId;
+	}
 
-  public void setTransitId(String transitId) {
-    this.transitId = transitId;
-  }
+	public String getRoutingId() {
+		return this.routingId;
+	}
 
-  public String getRoutingId() {
-    return this.routingId;
-  }
+	public void setRoutingId(String routingId) {
+		this.routingId = routingId;
+	}
 
-  public void setRoutingId(String routingId) {
-    this.routingId = routingId;
-  }
+	public int getKmDistance() {
+		return this.kmDistance;
+	}
 
+	public void setKmDistance(int kmDistance) {
+		this.kmDistance = kmDistance;
+	}
 
-  @Override
-  public String toString() {
-    return "<Node " + this.getId() + ">";
-  }
+	@Override
+	public String toString() {
+		return "<Node " + this.getId() + ">";
+	}
 }
