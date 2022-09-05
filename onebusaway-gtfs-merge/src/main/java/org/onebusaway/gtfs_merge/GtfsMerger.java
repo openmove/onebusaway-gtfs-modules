@@ -45,6 +45,7 @@ import org.onebusaway.gtfs_merge.strategies.ShapePointMergeStrategy;
 import org.onebusaway.gtfs_merge.strategies.StopMergeStrategy;
 import org.onebusaway.gtfs_merge.strategies.TransferMergeStrategy;
 import org.onebusaway.gtfs_merge.strategies.TripMergeStrategy;
+import org.onebusaway.gtfs_merge.strategies.ZoneMergeStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,6 +81,8 @@ public class GtfsMerger {
   private EntityMergeStrategy _fareRuleStrategy = new FareRuleMergeStrategy();
 
   private EntityMergeStrategy _feedInfoStrategy = new FeedInfoMergeStrategy();
+  
+  private EntityMergeStrategy _zoneStrategy = new ZoneMergeStrategy();
 
   public void setAgencyStrategy(EntityMergeStrategy agencyStrategy) {
     _agencyStrategy = agencyStrategy;
@@ -128,6 +131,9 @@ public class GtfsMerger {
 
   public void setFeedInfoStrategy(EntityMergeStrategy feedInfoStrategy) { _feedInfoStrategy = feedInfoStrategy; }
 
+  public void setZoneStrategy(EntityMergeStrategy zoneStrategy) { _zoneStrategy = zoneStrategy; }
+
+  
   public EntityMergeStrategy getEntityMergeStrategyForEntityType(
       Class<?> entityType) {
     List<EntityMergeStrategy> strategies = new ArrayList<EntityMergeStrategy>();
@@ -236,6 +242,7 @@ public class GtfsMerger {
     strategies.add(_fareAttributeStrategy);
     strategies.add(_fareRuleStrategy);
     strategies.add(_feedInfoStrategy);
+    strategies.add(_zoneStrategy);
   }
 
 }

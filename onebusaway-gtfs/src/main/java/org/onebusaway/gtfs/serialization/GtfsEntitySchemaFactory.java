@@ -63,6 +63,8 @@ public class GtfsEntitySchemaFactory {
     entityClasses.add(FacilityProperty.class);
     entityClasses.add(RouteNameException.class);
     entityClasses.add(DirectionNameException.class);
+    entityClasses.add(Zone.class);
+    entityClasses.add(Node.class);
     return entityClasses;
   }
 
