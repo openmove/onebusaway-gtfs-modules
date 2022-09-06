@@ -22,6 +22,7 @@ import java.nio.file.attribute.FileTime;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.onebusaway.gtfs.impl.GtfsRelationalDaoImpl;
+import org.onebusaway.gtfs.model.Node;
 import org.onebusaway.gtfs.serialization.GtfsReader;
 import org.onebusaway.gtfs.serialization.GtfsWriter;
 import org.onebusaway.gtfs_merge.strategies.AgencyMergeStrategy;
@@ -83,6 +85,7 @@ public class GtfsMerger {
   private EntityMergeStrategy _feedInfoStrategy = new FeedInfoMergeStrategy();
   
   private EntityMergeStrategy _zoneStrategy = new ZoneMergeStrategy();
+  
 
   public void setAgencyStrategy(EntityMergeStrategy agencyStrategy) {
     _agencyStrategy = agencyStrategy;
@@ -178,6 +181,8 @@ public class GtfsMerger {
      * dropped.
      */
     long newestFile = Long.MIN_VALUE;
+    Collection<org.onebusaway.gtfs.model.Node> nodes = null;
+    
     for (int index = inputPaths.size() - 1; index >= 0; --index) {
       File inputPath = inputPaths.get(index);
       String prefix = getIndexAsPrefix(index, inputPaths.size());
@@ -205,13 +210,24 @@ public class GtfsMerger {
             rawEntityIdMapsByMergeStrategy.get(strategy));
         strategy.merge(context);
       }
+      
+      
+      if(nodes == null) {
+    	  nodes = (Collection<org.onebusaway.gtfs.model.Node>) dao.getAllEntitiesForType(org.onebusaway.gtfs.model.Node.class);
+  		
+      }
+      
     }
 
     _log.info("writing merged output: " + outputPath);
 
     GtfsWriter writer = new GtfsWriter();
     writer.setOutputLocation(outputPath);
+    for(Node node : nodes) { 
+    	writer.handleEntity(node); // 🐷
+    }
     writer.run(mergedDao);
+    
     if (outputPath.isFile()) {
       _log.info("setting merged file lastModified to " + new Date(newestFile));
       Files.setAttribute(outputPath.toPath(),
