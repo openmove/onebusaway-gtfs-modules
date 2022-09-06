@@ -223,9 +223,12 @@ public class GtfsMerger {
 
     GtfsWriter writer = new GtfsWriter();
     writer.setOutputLocation(outputPath);
-    for(Node node : nodes) { 
-    	writer.handleEntity(node); // 🐷
+    if(nodes != null) {
+    	for(Node node : nodes) { 
+        	writer.handleEntity(node); // 🐷
+        }
     }
+    
     writer.run(mergedDao);
     
     if (outputPath.isFile()) {
