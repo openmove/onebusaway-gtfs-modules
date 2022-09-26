@@ -7,3 +7,8 @@ pom.xml.releaseBackup
 .metadata/
 /.idea/
 junkyard
+/onebusaway-gtfs-transformer/onebusaway-gtfs-transformer.iml
+/onebusaway-gtfs-transformer/pom.xml.versionsBackup
+/onebusaway-gtfs-modules.iml
+/pom.xml.versionsBackup
+*.iml
