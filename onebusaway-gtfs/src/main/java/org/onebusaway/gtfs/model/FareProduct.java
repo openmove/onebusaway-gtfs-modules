@@ -65,7 +65,7 @@ public final class FareProduct extends IdentityBean<AgencyAndId> {
     this.fareProductId = fareProductId;
   }
 
-  public FareContainer egetFareContainer() {
+  public FareContainer getFareContainer() {
     return fareContainer;
   }
 
