@@ -42,9 +42,11 @@ public class GtfsEntitySchemaFactory {
     entityClasses.add(BookingRule.class);
     entityClasses.add(ShapePoint.class);
     entityClasses.add(Route.class);
+    entityClasses.add(RouteStop.class);
+    entityClasses.add(RouteShape.class);
     entityClasses.add(Level.class);
     entityClasses.add(Stop.class);
-    entityClasses.add(StopArea.class);
+    entityClasses.add(StopAreaElement.class);
     entityClasses.add(LocationGroupElement.class);
     entityClasses.add(Trip.class);
     entityClasses.add(Note.class);
@@ -52,7 +54,7 @@ public class GtfsEntitySchemaFactory {
     entityClasses.add(ServiceCalendar.class);
     entityClasses.add(ServiceCalendarDate.class);
     entityClasses.add(RiderCategory.class);
-    entityClasses.add(FareContainer.class);
+    entityClasses.add(FareMedium.class);
     entityClasses.add(FareProduct.class);
     entityClasses.add(FareLegRule.class);
     entityClasses.add(FareAttribute.class);
@@ -71,6 +73,9 @@ public class GtfsEntitySchemaFactory {
     entityClasses.add(DirectionNameException.class);
     entityClasses.add(Zone.class);
     entityClasses.add(Node.class);
+    entityClasses.add(WrongWayConcurrency.class);
+    entityClasses.add(DirectionEntry.class);
+    entityClasses.add(AlternateStopNameException.class);
     return entityClasses;
   }
 

@@ -21,10 +21,14 @@ import org.onebusaway.csv_entities.schema.annotations.CsvFields;
 import org.onebusaway.gtfs.serialization.mappings.EntityFieldMappingFactory;
 import org.onebusaway.gtfs.serialization.mappings.StopTimeFieldMappingFactory;
 import org.onebusaway.gtfs.serialization.mappings.StopLocationFieldMappingFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @CsvFields(filename = "stop_times.txt")
 public final class StopTime extends IdentityBean<Integer> implements
     Comparable<StopTime>, StopTimeProxy {
+
+  private static Logger _log = LoggerFactory.getLogger(StopTime.class);
 
   private static final long serialVersionUID =2L;
 
@@ -38,8 +42,18 @@ public final class StopTime extends IdentityBean<Integer> implements
   @CsvField(name = "trip_id", mapping = EntityFieldMappingFactory.class)
   private Trip trip;
 
-  @CsvField(name = "stop_id", mapping = StopLocationFieldMappingFactory.class)
+  /**
+   * This is optional because in flex you can also have location_id and location_group_id.
+   */
+  @CsvField(name = "stop_id", optional = true, mapping = StopLocationFieldMappingFactory.class)
   private StopLocation stop;
+
+  @CsvField(name = "location_id", optional = true, mapping = StopLocationFieldMappingFactory.class)
+  private StopLocation location;
+
+  @CsvField(name = "location_group_id", optional = true, mapping = StopLocationFieldMappingFactory.class)
+  private StopLocation locationGroup;
+
 
   @CsvField(optional = true, mapping = StopTimeFieldMappingFactory.class)
   private int arrivalTime = MISSING_VALUE;
@@ -52,24 +66,40 @@ public final class StopTime extends IdentityBean<Integer> implements
    * GTFS-Flex v2.1 renamed this field. Use {@link #startPickupDropOffWindow} instead.
    */
   @Deprecated
-  @CsvField(optional = true, mapping = StopTimeFieldMappingFactory.class)
+  @CsvField(optional = true, mapping = StopTimeFieldMappingFactory.class, defaultValue = "-999")
   private int minArrivalTime = MISSING_VALUE;
 
-  @CsvField(optional = true, name = "start_pickup_dropoff_window", mapping = StopTimeFieldMappingFactory.class)
+  @CsvField(optional = true, name = "start_pickup_drop_off_window", mapping = StopTimeFieldMappingFactory.class, defaultValue = "-999")
   private int startPickupDropOffWindow = MISSING_VALUE;
+
+  /**
+   * @deprecated
+   * GTFS-Flex v2.1 renamed "dropoff" to "drop off": https://github.com/MobilityData/gtfs-flex/commit/547200dfb580771265ae14b07d9bfd7b91c16ed2
+   */
+  @Deprecated
+  @CsvField(optional = true, name = "start_pickup_dropoff_window", mapping = StopTimeFieldMappingFactory.class, defaultValue = "-999")
+  public int oldSpellingOfStartPickupDropOffWindow = MISSING_VALUE;
 
   /**
    * @deprecated
    * GTFS-Flex v2.1 renamed this field. Use {@link #endPickupDropOffWindow} instead.
    */
   @Deprecated
-  @CsvField(optional = true, mapping = StopTimeFieldMappingFactory.class)
+  @CsvField(optional = true, mapping = StopTimeFieldMappingFactory.class, defaultValue = "-999")
   private int maxDepartureTime = MISSING_VALUE;
 
-  @CsvField(optional = true, name = "end_pickup_dropoff_window", mapping = StopTimeFieldMappingFactory.class)
+  @CsvField(optional = true, name = "end_pickup_drop_off_window", mapping = StopTimeFieldMappingFactory.class, defaultValue = "-999")
   private int endPickupDropOffWindow = MISSING_VALUE;
 
-  @CsvField(optional = true)
+  /**
+   * @deprecated
+   * GTFS-Flex v2.1 renamed "dropoff" to "drop off": https://github.com/MobilityData/gtfs-flex/commit/547200dfb580771265ae14b07d9bfd7b91c16ed2
+   */
+  @Deprecated
+  @CsvField(optional = true, name = "end_pickup_dropoff_window", mapping = StopTimeFieldMappingFactory.class, defaultValue = "-999")
+  public int oldSpellingOfEndPickupDropOffWindow = MISSING_VALUE;
+
+  @CsvField(optional = true, defaultValue = "-999")
   private int timepoint = MISSING_VALUE;
 
   private int stopSequence;
@@ -89,13 +119,13 @@ public final class StopTime extends IdentityBean<Integer> implements
   @CsvField(optional = true, defaultValue = "0")
   private int dropOffType;
 
-  @CsvField(optional = true)
+  @CsvField(optional = true, defaultValue = "-999")
   private double shapeDistTraveled = MISSING_VALUE;
 
-  @CsvField(optional = true)
+  @CsvField(optional = true, defaultValue = "1")
   private int continuousPickup = MISSING_FLEX_VALUE;
 
-  @CsvField(optional = true)
+  @CsvField(optional = true, defaultValue = "1")
   private int continuousDropOff = MISSING_FLEX_VALUE;
 
   @CsvField(optional = true, name = "start_service_area_id", mapping = EntityFieldMappingFactory.class, order = -2)
@@ -104,10 +134,10 @@ public final class StopTime extends IdentityBean<Integer> implements
   @CsvField(optional = true, name = "end_service_area_id", mapping = EntityFieldMappingFactory.class, order = -2)
   private Area endServiceArea;
 
-  @CsvField(optional = true)
+  @CsvField(optional = true, defaultValue = "-999.0")/*note defaultValue quirk for non-proxied comparison*/
   private double startServiceAreaRadius = MISSING_VALUE;
 
-  @CsvField(optional = true)
+  @CsvField(optional = true, defaultValue = "-999.0")/*note defaultValue quirk for non-proxied comparison*/
   private double endServiceAreaRadius = MISSING_VALUE;
 
   @CsvField(ignore = true)
@@ -125,7 +155,7 @@ public final class StopTime extends IdentityBean<Integer> implements
   private String farePeriodId;
 
   /** Extension to support departure buffer https://groups.google.com/forum/#!msg/gtfs-changes/sHTyliLgMQk/gfpaGkI_AgAJ */
-  @CsvField(optional = true, defaultValue = "-1")
+  @CsvField(optional = true, defaultValue = "-999")
   private int departureBuffer;
 
   /** Support track extension */
@@ -137,16 +167,16 @@ public final class StopTime extends IdentityBean<Integer> implements
   private Note note;
 
   // See https://github.com/MobilityData/gtfs-flex/blob/master/spec/reference.md
-  @CsvField(optional = true, name = "mean_duration_factor")
+  @CsvField(optional = true, name = "mean_duration_factor", defaultValue = "-999.0")/*note defaultValue quirk for non-proxied comparison*/
   private double meanDurationFactor = MISSING_VALUE;
 
-  @CsvField(optional = true, name = "mean_duration_offset")
+  @CsvField(optional = true, name = "mean_duration_offset", defaultValue = "-999.0")/*note defaultValue quirk for non-proxied comparison*/
   private double meanDurationOffset = MISSING_VALUE;
     
-  @CsvField(optional = true, name = "safe_duration_factor")
+  @CsvField(optional = true, name = "safe_duration_factor", defaultValue = "-999.0")/*note defaultValue quirk for non-proxied comparison*/
   private double safeDurationFactor = MISSING_VALUE;
 
-  @CsvField(optional = true, name = "safe_duration_offset")
+  @CsvField(optional = true, name = "safe_duration_offset", defaultValue = "-999.0")
   private double safeDurationOffset = MISSING_VALUE;
 
   @CsvField(optional = true, name = "free_running_flag")
@@ -172,6 +202,8 @@ public final class StopTime extends IdentityBean<Integer> implements
     this.shapeDistTraveled = st.shapeDistTraveled;
     this.farePeriodId = st.farePeriodId;
     this.stop = st.stop;
+    this.location = st.location;
+    this.locationGroup = st.locationGroup;
     this.stopHeadsign = st.stopHeadsign;
     this.stopSequence = st.stopSequence;
     this.toStopSequence = st.toStopSequence;
@@ -246,11 +278,47 @@ public final class StopTime extends IdentityBean<Integer> implements
     this.toStopSequence = toStopSequence;
   }
 
+  @Override
   public StopLocation getStop() {
     if (proxy != null) {
       return proxy.getStop();
     }
     return stop;
+  }
+
+  @Override
+  public StopLocation getLocation() {
+    if (proxy != null) {
+      return proxy.getLocation();
+    }
+    return location;
+  }
+
+  @Override
+  public StopLocation getLocationGroup() {
+    if (proxy != null) {
+      return proxy.getLocationGroup();
+    }
+    return locationGroup;
+  }
+
+  /**
+   * Returns possible entity for the stop location in this order:
+   *  - stop
+   *  - location
+   *  - location group
+   */
+  public StopLocation getStopLocation(){
+    if(stop != null){
+      return stop;
+    }
+    else if(location != null) {
+      return location;
+    }
+    else if(locationGroup != null){
+      return locationGroup;
+    }
+    return null;
   }
 
   public void setStop(StopLocation stop) {
@@ -259,6 +327,22 @@ public final class StopTime extends IdentityBean<Integer> implements
       return;
     }
     this.stop = stop;
+  }
+
+  public void setLocation(StopLocation location) {
+    if (proxy != null) {
+      proxy.setLocation(location);
+      return;
+    }
+    this.location = location;
+  }
+
+  public void setLocationGroup(StopLocation group) {
+    if (proxy != null) {
+      proxy.setLocationGroup(group);
+      return;
+    }
+    this.locationGroup = group;
   }
 
   public boolean isArrivalTimeSet() {
@@ -340,6 +424,8 @@ public final class StopTime extends IdentityBean<Integer> implements
   public int getStartPickupDropOffWindow() {
     if (startPickupDropOffWindow != MISSING_VALUE) {
       return startPickupDropOffWindow;
+    } else if(oldSpellingOfStartPickupDropOffWindow != MISSING_VALUE){
+      return oldSpellingOfStartPickupDropOffWindow;
     } else {
       return minArrivalTime;
     }
@@ -362,7 +448,11 @@ public final class StopTime extends IdentityBean<Integer> implements
   public int getEndPickupDropOffWindow() {
     if (endPickupDropOffWindow != MISSING_VALUE) {
       return endPickupDropOffWindow;
-    } else {
+    }
+    else if (oldSpellingOfEndPickupDropOffWindow != MISSING_VALUE) {
+      return oldSpellingOfEndPickupDropOffWindow;
+    }
+    else {
       return maxDepartureTime;
     }
   }
@@ -648,7 +738,7 @@ public final class StopTime extends IdentityBean<Integer> implements
 
   @Override
   public String toString() {
-    return "StopTime(seq=" + getStopSequence() + " stop=" + (getStop()==null?"NuLl":getStop().getId())
+    return "StopTime(seq=" + getStopSequence() + " stop=" + (getStopLocation()==null?"NuLl":getStop().getId())
         + " trip=" + (getTrip()==null?"NuLl":getTrip().getId()) + " times="
         + StopTimeFieldMappingFactory.getSecondsAsString(getArrivalTime())
         + "-"
@@ -715,5 +805,31 @@ public final class StopTime extends IdentityBean<Integer> implements
       return;
     }
     this.freeRunningFlag = freeRunningFlag;
+  }
+  @Deprecated
+  public void setOldSpellingOfStartPickupDropOffWindow(int time) {
+    oldDropOffSpellingWarning("start");
+    this.oldSpellingOfStartPickupDropOffWindow = time;
+  }
+
+  @Deprecated
+  public void setOldSpellingOfEndPickupDropOffWindow(int time) {
+    oldDropOffSpellingWarning("end");
+    this.oldSpellingOfEndPickupDropOffWindow = time;
+  }
+
+  private static void oldDropOffSpellingWarning(String type) {
+    _log.warn("This feed uses the old spelling of '{}_pickup_drop_off_window' ('dropoff' instead of 'drop_off'). "
+            + "Compatibility will be removed in the future, so please update your feed to be in line with the latest Flex V2 spec:"
+            + " https://github.com/MobilityData/gtfs-flex/commit/547200dfb", type);
+  }
+  @Deprecated
+  public int getOldSpellingOfStartPickupDropOffWindow() {
+    return this.oldSpellingOfStartPickupDropOffWindow;
+  }
+
+  @Deprecated
+  public int getOldSpellingOfEndPickupDropOffWindow() {
+    return oldSpellingOfEndPickupDropOffWindow;
   }
 }

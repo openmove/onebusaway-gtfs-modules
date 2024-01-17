@@ -34,20 +34,7 @@ import org.onebusaway.gtfs.impl.GtfsRelationalDaoImpl;
 import org.onebusaway.gtfs.model.Node;
 import org.onebusaway.gtfs.serialization.GtfsReader;
 import org.onebusaway.gtfs.serialization.GtfsWriter;
-import org.onebusaway.gtfs_merge.strategies.AgencyMergeStrategy;
-import org.onebusaway.gtfs_merge.strategies.AreaMergeStrategy;
-import org.onebusaway.gtfs_merge.strategies.EntityMergeStrategy;
-import org.onebusaway.gtfs_merge.strategies.FareAttributeMergeStrategy;
-import org.onebusaway.gtfs_merge.strategies.FareRuleMergeStrategy;
-import org.onebusaway.gtfs_merge.strategies.FeedInfoMergeStrategy;
-import org.onebusaway.gtfs_merge.strategies.FrequencyMergeStrategy;
-import org.onebusaway.gtfs_merge.strategies.RouteMergeStrategy;
-import org.onebusaway.gtfs_merge.strategies.ServiceCalendarMergeStrategy;
-import org.onebusaway.gtfs_merge.strategies.ShapePointMergeStrategy;
-import org.onebusaway.gtfs_merge.strategies.StopMergeStrategy;
-import org.onebusaway.gtfs_merge.strategies.TransferMergeStrategy;
-import org.onebusaway.gtfs_merge.strategies.TripMergeStrategy;
-import org.onebusaway.gtfs_merge.strategies.ZoneMergeStrategy;
+import org.onebusaway.gtfs_merge.strategies.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,6 +73,8 @@ public class GtfsMerger {
   
   private EntityMergeStrategy _zoneStrategy = new ZoneMergeStrategy();
   
+
+  private EntityMergeStrategy _metadataStrategy = new MetadataMergeStrategy();
 
   public void setAgencyStrategy(EntityMergeStrategy agencyStrategy) {
     _agencyStrategy = agencyStrategy;
@@ -136,7 +125,8 @@ public class GtfsMerger {
 
   public void setZoneStrategy(EntityMergeStrategy zoneStrategy) { _zoneStrategy = zoneStrategy; }
 
-  
+  public void setMetadataStrategy(EntityMergeStrategy metadataStrategy) { _metadataStrategy = metadataStrategy; }
+
   public EntityMergeStrategy getEntityMergeStrategyForEntityType(
       Class<?> entityType) {
     List<EntityMergeStrategy> strategies = new ArrayList<EntityMergeStrategy>();
@@ -237,7 +227,7 @@ public class GtfsMerger {
               "lastModifiedTime",
               FileTime.fromMillis(newestFile));
     } else {
-      _log.info("outputPath not a file, skipping");
+      _log.info("outputPath not a file, skipping setting lastModified");
     }
   }
 
@@ -262,6 +252,7 @@ public class GtfsMerger {
     strategies.add(_fareRuleStrategy);
     strategies.add(_feedInfoStrategy);
     strategies.add(_zoneStrategy);
+    strategies.add(_metadataStrategy);
   }
 
 }

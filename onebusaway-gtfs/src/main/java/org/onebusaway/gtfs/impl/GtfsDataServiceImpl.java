@@ -105,8 +105,8 @@ public class GtfsDataServiceImpl implements GtfsDataService {
     }
 
     @Override
-    public Collection<FareContainer> getAllFareContainers() {
-        return _dao.getAllFareContainers();
+    public Collection<FareMedium> getAllFareMedia() {
+        return _dao.getAllFareMedia();
     }
 
     @Override
@@ -224,6 +224,15 @@ public class GtfsDataServiceImpl implements GtfsDataService {
         return _dao.getAllRoutes();
     }
 
+    @Override
+    public Collection<RouteStop> getAllRouteStops() {
+        return _dao.getAllRouteStops();
+    }
+
+    @Override
+    public Collection<RouteShape> getAllRouteShapes() {
+        return _dao.getAllRouteShapes();
+    }
     @Override
     public Route getRouteForId(AgencyAndId id) {
         return _dao.getRouteForId(id);
@@ -355,6 +364,16 @@ public class GtfsDataServiceImpl implements GtfsDataService {
     }
 
     @Override
+    public Collection<StopAreaElement> getAllStopAreaElements() {
+        return _dao.getAllStopAreaElements();
+    }
+
+    @Override
+    public Collection<StopArea> getAllStopAreas() {
+        return _dao.getAllStopAreas();
+    }
+
+    @Override
     public Collection<LocationGroup> getAllLocationGroups() {
         return _dao.getAllLocationGroups();
     }
@@ -375,8 +394,23 @@ public class GtfsDataServiceImpl implements GtfsDataService {
     }
 
     @Override
-    public Collection<StopArea> getAllStopAreas() {
-        return _dao.getAllStopAreas();
+    public List<String> getOptionalMetadataFilenames() {
+        return _dao.getOptionalMetadataFilenames();
+    }
+
+    @Override
+    public boolean hasMetadata(String filename) {
+        return _dao.hasMetadata(filename);
+    }
+
+    @Override
+    public String getMetadata(String filename) {
+        return _dao.getMetadata(filename);
+    }
+
+    @Override
+    public void addMetadata(String filename, String content) {
+        _dao.addMetadata(filename, content);
     }
 
     @Override
@@ -445,6 +479,12 @@ public class GtfsDataServiceImpl implements GtfsDataService {
     }
 
     @Override
+    public boolean isLocalizedServiceIdActiveInRange(LocalizedServiceId serviceId,
+                                                     ServiceInterval scheduledService,
+                                                     AgencyServiceInterval serviceInterval) {
+        return _calendarService.isLocalizedServiceIdActiveInRange(serviceId, scheduledService, serviceInterval);
+    }
+    @Override
     public Map<LocalizedServiceId, List<Date>> getServiceDateArrivalsWithinRange(ServiceIdIntervals serviceIdIntervals, Date from, Date to) {
         return _calendarService.getServiceDateArrivalsWithinRange(serviceIdIntervals, from, to);
     }
@@ -479,7 +519,7 @@ public class GtfsDataServiceImpl implements GtfsDataService {
     public FacilityPropertyDefinition getFacilityPropertiesDefinitionsForId(AgencyAndId id) { return getEntityForId(FacilityPropertyDefinition.class, id);}
     public RouteNameException getRouteNameExceptionForId(AgencyAndId id) { return getEntityForId(RouteNameException.class, id);}
     public DirectionNameException getDirectionNameExceptionForId(AgencyAndId id) { return getEntityForId(DirectionNameException.class, id);}
-
+    public AlternateStopNameException getAlternateStopNameExceptionForId(AgencyAndId id) { return getEntityForId(AlternateStopNameException.class, id);}
     public Collection<Facility> getAllFacilities() {
         return getAllEntitiesForType(Facility.class);
     }
@@ -494,5 +534,14 @@ public class GtfsDataServiceImpl implements GtfsDataService {
     }
     public Collection<DirectionNameException> getAllDirectionNameExceptions() {
         return getAllEntitiesForType(DirectionNameException.class);
+    }
+    public Collection<AlternateStopNameException> getAllAlternateStopNameExceptions(){
+        return getAllEntitiesForType(AlternateStopNameException.class);
+    }
+    public Collection<DirectionEntry> getAllDirectionEntries() {
+        return _dao.getAllDirectionEntries();
+    }
+    public Collection<WrongWayConcurrency> getAllWrongWayConcurrencies() {
+        return _dao.getAllWrongWayConcurrencies();
     }
 }

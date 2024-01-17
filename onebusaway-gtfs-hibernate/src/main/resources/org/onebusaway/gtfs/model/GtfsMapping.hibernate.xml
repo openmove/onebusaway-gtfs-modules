@@ -83,6 +83,8 @@
         <property name="startDate" type="org.onebusaway.gtfs.impl.ServiceDateUserType" length="8"/>
         <property name="endDate" type="org.onebusaway.gtfs.impl.ServiceDateUserType" length="8"/>
         <property name="version" />
+        <property name="contactEmail" />
+        <property name="contactUrl" />
     </class>
 
     <class name="org.onebusaway.gtfs.model.Frequency" table="gtfs_frequencies">
@@ -206,6 +208,7 @@
             <property name="vehicleType" />
             <property name="wheelchairBoarding" />
             <property name="platformCode" />
+            <property name="ttsStopName"/>
             <many-to-one name="level">
                 <column name="level_agencyId" length="50" />
                 <column name="level_id" />
