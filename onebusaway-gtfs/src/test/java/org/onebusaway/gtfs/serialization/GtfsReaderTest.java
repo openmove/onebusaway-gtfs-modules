@@ -50,7 +50,7 @@ import org.onebusaway.gtfs.services.GtfsMutableRelationalDao;
 import org.onebusaway.gtfs.services.GtfsRelationalDao;
 import org.onebusaway.gtfs.services.MockGtfs;
 
-public class GtfsReaderTest {
+public class GtfsReaderTest extends BaseGtfsTest {
 
   @Test
   public void testAllFields() throws IOException {
@@ -68,8 +68,8 @@ public class GtfsReaderTest {
     gtfs.putLines(
         "stops.txt",
         "stop_id,stop_name,stop_lat,stop_lon,stop_desc,stop_code,stop_direction,location_type,parent_station,"
-            + "stop_url,wheelchair_boarding,zone_id,stop_timezone,vehicle_type,platform_code,level_id",
-        "S1,Stop,47.0,-122.0,description,123,N,1,1234,http://agency.gov/stop,1,Z,America/New_York,2,9 3/4,L1");
+            + "stop_url,wheelchair_boarding,zone_id,stop_timezone,vehicle_type,platform_code,level_id,tts_stop_name",
+        "S1,Stop,47.0,-122.0,description,123,N,1,1234,http://agency.gov/stop,1,Z,America/New_York,2,9 3/4,L1,southwest one hundred twenty fifth & longhorn");
     gtfs.putLines(
         "routes.txt",
         "agency_id,route_id,route_short_name,route_long_name,route_type,route_desc,route_color,route_text_color,"
@@ -111,8 +111,8 @@ public class GtfsReaderTest {
         "S1,R1,T1,S1,R1,T1,2,60");
     gtfs.putLines(
         "feed_info.txt",
-        "feed_publisher_name,feed_publisher_url,feed_lang,feed_start_date,feed_end_date,feed_version",
-        "Test,http://agency.gov/,en,20120110,20120217,2.0");
+        "feed_publisher_name,feed_publisher_url,feed_lang,feed_start_date,feed_end_date,feed_version,feed_contact_email,feed_contact_url",
+        "Test,http://agency.gov/,en,20120110,20120217,2.0,agency@email.com,http://agency.gov/");
     gtfs.putLines(
         "pathways.txt",
             "pathway_id,pathway_mode,is_bidirectional,from_stop_id,to_stop_id,traversal_time",
@@ -186,6 +186,8 @@ public class GtfsReaderTest {
     assertEquals(2, stop.getVehicleType());
     assertEquals("9 3/4", stop.getPlatformCode());
     assertEquals(level, stop.getLevel());
+    assertEquals("southwest one hundred twenty fifth & longhorn",stop.getTtsStopName());
+
 
     Route route = dao.getRouteForId(new AgencyAndId("1", "R1"));
     assertEquals(new AgencyAndId("1", "R1"), route.getId());
@@ -303,6 +305,8 @@ public class GtfsReaderTest {
     assertEquals(new ServiceDate(2012, 1, 10), feedInfo.getStartDate());
     assertEquals(new ServiceDate(2012, 2, 17), feedInfo.getEndDate());
     assertEquals("2.0", feedInfo.getVersion());
+    assertEquals("agency@email.com",feedInfo.getContactEmail());
+    assertEquals("http://agency.gov/",feedInfo.getContactUrl());
 
     Pathway pathway = dao.getAllPathways().iterator().next();
     assertEquals(new AgencyAndId("1", "P1"), pathway.getId());
@@ -394,7 +398,7 @@ public class GtfsReaderTest {
   }
 
   @Test
-  public void testCaltrain() throws IOException, ParseException {
+  public void testCaltrain() throws IOException {
 
     File resourcePath = GtfsTestData.getCaltrainGtfs();
     String agencyId = "Caltrain";
@@ -555,7 +559,7 @@ public class GtfsReaderTest {
   }
 
   @Test
-  public void testBart() throws IOException, ParseException {
+  public void testBart() throws IOException {
 
     File resourcePath = GtfsTestData.getBartGtfs();
     String agencyId = "BART";
@@ -577,7 +581,7 @@ public class GtfsReaderTest {
   }
 
   @Test
-  public void testIntern() throws IOException, ParseException {
+  public void testIntern() throws IOException {
     File resourcePath;
     String agencyId;
     GtfsDao entityStore;
@@ -697,8 +701,7 @@ public class GtfsReaderTest {
   }
 
   @Test
-  public void testUtf8() throws IOException, ParseException,
-      InterruptedException {
+  public void testUtf8() throws IOException {
 
     MockGtfs mockGtfs = MockGtfs.create();
     mockGtfs.putDefaultStopTimes();
@@ -716,8 +719,7 @@ public class GtfsReaderTest {
   }
 
   @Test
-  public void testBom() throws IOException, ParseException,
-      InterruptedException {
+  public void testBom() throws IOException {
 
     MockGtfs mockGtfs = MockGtfs.create();
     mockGtfs.putDefaultStopTimes();
@@ -775,108 +777,6 @@ public class GtfsReaderTest {
     assertEquals(1, frequency.getExactTimes());
     assertEquals(300, frequency.getHeadwaySecs());
     assertSame(trip, frequency.getTrip());
-  }
-
-  @Test
-  public void turlockFaresV2() throws CsvEntityIOException, IOException {
-    String agencyId = "1642";
-    GtfsRelationalDao dao = processFeed(GtfsTestData.getTurlockFaresV2(),
-      agencyId, false);
-
-    Agency agency = dao.getAgencyForId(agencyId);
-    assertEquals(agencyId, agency.getId());
-    assertEquals("Turlock Transit", agency.getName());
-    assertEquals("http://www.turlocktransit.com/", agency.getUrl());
-    assertEquals("America/Los_Angeles", agency.getTimezone());
-
-    List<FareProduct> fareProducts = new ArrayList<>(dao.getAllFareProducts());
-    assertEquals(12, fareProducts.size());
-
-    FareProduct fp = fareProducts.stream().sorted(Comparator.comparing(FareProduct::getId)).findFirst().get();
-    assertEquals("id=31-day_disabled|category=disabled|container=null", fp.getId().getId());
-    assertEquals("31-Day Pass Persons with Disabilities", fp.getName());
-    assertEquals("USD", fp.getCurrency());
-    assertEquals(15.0, fp.getAmount(), 0);
-    assertEquals(3, fp.getDurationUnit());
-    assertEquals(31, fp.getDurationAmount());
-    assertEquals(2, fp.getDurationType());
-    RiderCategory cat = fp.getRiderCategory();
-    assertEquals("Persons with Disabilities", cat.getName());
-    assertEquals("disabled", cat.getId().getId());
-
-
-    List<FareLegRule> fareLegRules = new ArrayList<>(dao.getAllFareLegRules());
-    assertEquals(12, fareLegRules.size());
-
-    FareLegRule flr = fareLegRules.stream().sorted(Comparator.comparing(FareLegRule::getId)).findFirst().get();
-    assertEquals("id=31-day_disabled|network=null|fromArea=null|toArea=null|container=null|category=disabled", flr.getId());
-    assertEquals("Turlock", flr.getLegGroupId());
-    assertEquals("Persons with Disabilities", flr.getRiderCategory().getName());
-
-    List<RiderCategory> riderCats = new ArrayList<>(dao.getAllRiderCategories());
-    assertEquals(5, riderCats.size());
-
-    RiderCategory riderCat = riderCats.stream().sorted(Comparator.comparing(RiderCategory::getId)).filter(c -> c.getId().getId().equals("youth")).findAny().get();
-    assertEquals("youth", riderCat.getId().getId());
-    assertEquals("Youth Age 18 and Under", riderCat.getName());
-    assertEquals(18, riderCat.getMaxAge());
-    assertEquals(RiderCategory.MISSING_VALUE, riderCat.getMinAge());
-    assertEquals("http://www.turlocktransit.com/fares.html", riderCat.getEligibilityUrl());
-
-    assertTrue(dao.hasFaresV1());
-    assertTrue(dao.hasFaresV2());
-  }
-  @Test
-  public void mdotMetroFaresV2() throws CsvEntityIOException, IOException {
-    String agencyId = "1";
-    GtfsRelationalDao dao = processFeed(GtfsTestData.getMdotMetroFaresV2(),
-      agencyId, false);
-
-    Agency agency = dao.getAgencyForId(agencyId);
-    assertEquals(agencyId, agency.getId());
-    assertEquals("Maryland Transit Administration Metro Subway", agency.getName());
-
-    List<FareProduct> fareProducts = new ArrayList<>(dao.getAllFareProducts());
-    assertEquals(21, fareProducts.size());
-
-    FareProduct fp = fareProducts.stream().sorted(Comparator.comparing(FareProduct::getId)).findFirst().get();
-    assertEquals("id=core_local_1_day_fare|category=null|container=charmcard", fp.getId().getId());
-    assertEquals("1-Day Pass - Core Service", fp.getName());
-    assertEquals("USD", fp.getCurrency());
-    assertEquals(4.6, fp.getAmount(), 0.01);
-
-    List<FareLegRule> fareLegRules = new ArrayList<>(dao.getAllFareLegRules());
-    assertEquals(21, fareLegRules.size());
-
-    FareLegRule flr = fareLegRules.stream().sorted(Comparator.comparing(FareLegRule::getId)).findFirst().get();
-    assertEquals("id=core_local_1_day_fare|network=core|fromArea=null|toArea=null|container=charmcard|category=null", flr.getId());
-    assertEquals("core_local_one_way_trip", flr.getLegGroupId());
-
-    List<FareTransferRule> fareTransferRules = new ArrayList<>(dao.getAllFareTransferRules());
-    assertEquals(3, fareTransferRules.size());
-
-    FareTransferRule ftr = fareTransferRules.stream().sorted(Comparator.comparing(FareTransferRule::getId)).findFirst().get();
-    assertEquals("1_core_express_one_way_trip_1_core_express_one_way_trip_null_-999_5400", ftr.getId());
-    assertEquals(new AgencyAndId("1", "core_express_one_way_trip"), ftr.getFromLegGroupId());
-    assertEquals(-999, ftr.getTransferCount());
-    assertEquals(5400, ftr.getDurationLimit());
-
-    List<FareContainer> containers = new ArrayList<>(dao.getAllFareContainers());
-    assertEquals(3, fareTransferRules.size());
-
-    FareContainer container = containers.stream().filter(c -> c.getId().getId().equals("charmcard_senior")).findFirst().get();
-    assertEquals("charmcard_senior", container.getId().getId());
-    assertEquals("Senior CharmCard", container.getName());
-
-    List<StopArea> stopAreas = new ArrayList<>(dao.getAllStopAreas());
-    assertEquals(0, stopAreas.size());
-
-    List<Route> routes = new ArrayList<>(dao.getAllRoutes());
-    assertEquals(1, routes.size());
-    assertEquals("core", routes.get(0).getNetworkId());
-
-    assertFalse(dao.hasFaresV1());
-    assertTrue(dao.hasFaresV2());
   }
 
   @Test
@@ -1028,27 +928,6 @@ public class GtfsReaderTest {
     Route route = reader.getEntityStore().getEntityForId(Route.class,
         new AgencyAndId("1", "R-10"));
     assertEquals("Ten, Ten", route.getLongName());
-  }
-
-  /****
-   * Private Methods
-   ****/
-
-  private GtfsRelationalDao processFeed(File resourcePath, String agencyId,
-      boolean internStrings) throws IOException {
-
-    GtfsReader reader = new GtfsReader();
-    reader.setDefaultAgencyId(agencyId);
-    reader.setInternStrings(internStrings);
-
-    reader.setInputLocation(resourcePath);
-
-    GtfsRelationalDaoImpl entityStore = new GtfsRelationalDaoImpl();
-    entityStore.setGenerateIds(true);
-    reader.setEntityStore(entityStore);
-
-    reader.run();
-    return entityStore;
   }
 
   private ShapePoint getShapePoint(Iterable<ShapePoint> shapePoints,

@@ -17,6 +17,7 @@ package org.onebusaway.gtfs.services;
 
 import java.util.Collection;
 
+import java.util.List;
 import java.util.stream.Stream;
 import org.onebusaway.gtfs.model.*;
 
@@ -74,9 +75,9 @@ public interface GtfsDao extends GenericDao {
   FareProduct getFareProductForId(AgencyAndId id);
 
   /****
-   * {@link FareContainer } Methods
+   * {@link FareMedium } Methods
    ***/
-  Collection<FareContainer> getAllFareContainers();
+  Collection<FareMedium> getAllFareMedia();
 
   /****
    * {@link RiderCategory} Methods
@@ -130,6 +131,10 @@ public interface GtfsDao extends GenericDao {
    ****/
 
   public Collection<Route> getAllRoutes();
+
+  public Collection<RouteStop> getAllRouteStops();
+
+  public Collection<RouteShape> getAllRouteShapes();
 
   public Route getRouteForId(AgencyAndId id);
 
@@ -185,9 +190,14 @@ public interface GtfsDao extends GenericDao {
 
   public Collection<Area> getAllAreas();
 
+  @Deprecated
   public Collection<LocationGroupElement> getAllLocationGroupElements();
 
   public Collection<LocationGroup> getAllLocationGroups();
+
+  public Collection<StopAreaElement> getAllStopAreaElements();
+
+  public Collection<StopArea> getAllStopAreas();
 
   public Collection<Location> getAllLocations();
 
@@ -199,7 +209,9 @@ public interface GtfsDao extends GenericDao {
 
   public Collection<Translation> getAllTranslations();
 
-  Collection<StopArea> getAllStopAreas();
+  public Collection<DirectionEntry> getAllDirectionEntries();
+
+  public Collection<WrongWayConcurrency> getAllWrongWayConcurrencies();
 
   default boolean hasFaresV1() {
     return Stream.of(getAllFareAttributes(), getAllFareRules()).flatMap(Collection::stream).findAny().isPresent();
@@ -211,4 +223,13 @@ public interface GtfsDao extends GenericDao {
       .findAny()
       .isPresent();
   }
+
+  List<String> getOptionalMetadataFilenames();
+
+  boolean hasMetadata(String filename);
+
+  String getMetadata(String filename);
+
+  void addMetadata(String filename, String content);
+
 }

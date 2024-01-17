@@ -16,13 +16,10 @@
  */
 package org.onebusaway.gtfs.serialization;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
+import java.util.*;
 
 import org.onebusaway.csv_entities.CsvEntityContext;
 import org.onebusaway.csv_entities.CsvEntityReader;
@@ -32,6 +29,7 @@ import org.onebusaway.csv_entities.EntityHandler;
 import org.onebusaway.csv_entities.exceptions.CsvEntityIOException;
 import org.onebusaway.csv_entities.schema.DefaultEntitySchemaFactory;
 import org.onebusaway.gtfs.impl.GtfsDaoImpl;
+import org.onebusaway.gtfs.impl.ZipHandler;
 import org.onebusaway.gtfs.model.*;
 import org.onebusaway.gtfs.services.GenericMutableDao;
 import org.slf4j.Logger;
@@ -60,6 +58,8 @@ public class GtfsReader extends CsvEntityReader {
 
   private boolean _overwriteDuplicates = false;
 
+  private File _inputLocation = null;
+
   public GtfsReader() {
 
     _entityClasses.add(Agency.class);
@@ -69,18 +69,20 @@ public class GtfsReader extends CsvEntityReader {
     _entityClasses.add(Area.class);
     _entityClasses.add(BookingRule.class);
     _entityClasses.add(Route.class);
+    _entityClasses.add(RouteStop.class);
+    _entityClasses.add(RouteShape.class);
     _entityClasses.add(Level.class);
     _entityClasses.add(Stop.class);
     _entityClasses.add(Location.class);
     _entityClasses.add(LocationGroupElement.class);
     _entityClasses.add(Trip.class);
-    _entityClasses.add(StopArea.class);
+    _entityClasses.add(StopAreaElement.class);
     _entityClasses.add(StopTime.class);
     _entityClasses.add(ServiceCalendar.class);
     _entityClasses.add(Zone.class);
     _entityClasses.add(ServiceCalendarDate.class);
     _entityClasses.add(RiderCategory.class);
-    _entityClasses.add(FareContainer.class);
+    _entityClasses.add(FareMedium.class);
     _entityClasses.add(FareProduct.class);
     _entityClasses.add(FareLegRule.class);
     _entityClasses.add(FareAttribute.class);
@@ -99,6 +101,9 @@ public class GtfsReader extends CsvEntityReader {
     _entityClasses.add(FacilityProperty.class);
     _entityClasses.add(RouteNameException.class);
     _entityClasses.add(DirectionNameException.class);
+    _entityClasses.add(WrongWayConcurrency.class);
+    _entityClasses.add(DirectionEntry.class);
+    _entityClasses.add(AlternateStopNameException.class);
 
     CsvTokenizerStrategy tokenizerStrategy = new CsvTokenizerStrategy();
     tokenizerStrategy.getCsvParser().setTrimInitialWhitespace(true);
@@ -116,6 +121,11 @@ public class GtfsReader extends CsvEntityReader {
     ctx.put(KEY_CONTEXT, _context);
 
     addEntityHandler(new EntityHandlerImpl());
+  }
+
+  public void setInputLocation(File path) throws IOException {
+    super.setInputLocation(path);
+    _inputLocation = path;
   }
 
   public void setLastModifiedTime(Long lastModifiedTime) {
@@ -202,6 +212,54 @@ public class GtfsReader extends CsvEntityReader {
     }
 
     _entityStore.close();
+
+    // support metadata files that are not CSV
+    // but only if we have a GtfsDao
+    if (_entityStore instanceof GtfsDaoImpl) {
+      List<String> filenames = ((GtfsDaoImpl) _entityStore).getOptionalMetadataFilenames();
+      if (filenames != null) {
+        for (String metaFile : filenames) {
+          if (source.hasResource(metaFile)) {
+            _log.info("reading metadata file: " + metaFile);
+            ((GtfsDaoImpl) _entityStore).addMetadata(metaFile, readContent(_inputLocation, metaFile));
+          }
+        }
+      }
+    }
+  }
+
+  private String readContent(File inputLocation, String filename) {
+    if (inputLocation.getAbsoluteFile().getName().endsWith(".zip")) {
+      // zip file
+      return readContentFromZip(inputLocation,
+        filename);
+    } else {
+      // file in directory
+      return readContentFromFile(new File(inputLocation.getAbsolutePath()
+              + File.separator
+              + filename));
+    }
+  }
+
+  private String readContentFromFile(File filePath) {
+    StringBuffer sb = new StringBuffer();
+    try {
+      byte[] bytes = Files.readAllBytes(filePath.toPath());
+      sb.append(new String(bytes, StandardCharsets.UTF_8));
+    } catch (IOException e) {
+      System.err.println("issue reading content from " + filePath);
+    }
+    return sb.toString();
+  }
+
+  private String readContentFromZip(File zipFilePath, String zipEntryName) {
+    try {
+      ZipHandler zip = new ZipHandler(zipFilePath);
+      return zip.readTextFromFile(zipEntryName);
+    } catch (IOException e) {
+      System.err.println("issue reading content from " + zipFilePath + ":" + zipEntryName);
+    }
+    return null;
   }
 
   /****
@@ -285,9 +343,9 @@ public class GtfsReader extends CsvEntityReader {
       } else if (entity instanceof FareProduct) {
         FareProduct product = (FareProduct) entity;
         registerAgencyId(FareProduct.class, product.getId());
-      } else if (entity instanceof FareContainer) {
-        FareContainer container = (FareContainer) entity;
-        registerAgencyId(FareContainer.class, container.getId());
+      } else if (entity instanceof FareMedium) {
+        FareMedium medium = (FareMedium) entity;
+        registerAgencyId(FareMedium.class, medium.getId());
       } else if (entity instanceof RiderCategory) {
         RiderCategory category = (RiderCategory) entity;
         registerAgencyId(RiderCategory.class, category.getId());
@@ -300,6 +358,7 @@ public class GtfsReader extends CsvEntityReader {
       } else if (entity instanceof Area) {
         Area area = (Area) entity;
         registerAgencyId(Area.class, area.getId());
+
       } else if (entity instanceof Location) {
         Location location = (Location) entity;
         registerAgencyId(Location.class, location.getId());
@@ -313,6 +372,15 @@ public class GtfsReader extends CsvEntityReader {
           _entityStore.saveEntity(locationGroup);
         }
         locationGroup.addLocation(locationGroupElement.getLocation());
+      } else if (entity instanceof StopAreaElement) {
+        var stopAreaElement = (StopAreaElement) entity;
+        var stopArea = _entityStore.getEntityForId(StopArea.class, stopAreaElement.getArea().getId());
+        if (stopArea == null) {
+          stopArea = new StopArea();
+          stopArea.setArea(stopAreaElement.getArea());
+          _entityStore.saveEntity(stopArea);
+        }
+        stopArea.addLocation(stopAreaElement.getStopLocation());
       } else if (entity instanceof Vehicle) {
         Vehicle vehicle = (Vehicle) entity;
         registerAgencyId(Vehicle.class, vehicle.getId());

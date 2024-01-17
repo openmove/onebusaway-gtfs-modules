@@ -6,7 +6,7 @@ on:
     branches: [ master ]
 
 jobs:
-  test:
+  build:
 
     runs-on: ubuntu-latest
 
@@ -16,10 +16,10 @@ jobs:
     - name: Set up JDK
       uses: actions/setup-java@v1
       with:
-        java-version: 8
+        java-version: 11
 
     - name: Cache Maven dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/.m2/repository
         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -27,4 +27,14 @@ jobs:
           ${{ runner.os }}-maven-
 
     - name: Test project with Maven
-      run: mvn --no-transfer-progress test verify
+      run: mvn --no-transfer-progress test install
+
+    - name: Build documentation
+      run: mvn --no-transfer-progress site
+
+    - name: Deploy documentation to Github Pages
+      # only deploy after merging to master
+      if: github.repository_owner == 'OneBusAway' && github.event_name == 'push' && github.ref == 'refs/heads/master'
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        folder: target/site/

@@ -20,53 +20,22 @@ import org.onebusaway.csv_entities.schema.annotations.CsvFields;
 import org.onebusaway.gtfs.serialization.mappings.DefaultAgencyIdFieldMappingFactory;
 import org.onebusaway.gtfs.serialization.mappings.EntityFieldMappingFactory;
 
-/**
- * As of July 2022 this file is not yet part of the main GTFS spec.
- */
-@CsvFields(filename = "fare_containers.txt", required = false)
-public final class FareContainer extends IdentityBean<AgencyAndId> {
+@CsvFields(filename = "fare_media.txt", required = false)
+public final class FareMedium extends IdentityBean<AgencyAndId> {
 
   public static final int MISSING_VALUE = -999;
 
-  @CsvField(name = "fare_container_id", mapping = DefaultAgencyIdFieldMappingFactory.class)
+  @CsvField(name = "fare_media_id", mapping = DefaultAgencyIdFieldMappingFactory.class)
   private AgencyAndId id;
-  @CsvField(name = "fare_container_name")
+
+  @CsvField(name = "fare_media_name", optional = true)
   private String name;
+
+  @CsvField
+  private int fareMediaType;
+
   @CsvField(name = "rider_category_id", optional = true, mapping = EntityFieldMappingFactory.class)
   private RiderCategory riderCategory;
-
-  @CsvField(optional = true)
-  private String currency;
-
-  @CsvField(optional = true)
-  private float amount = MISSING_VALUE;
-
-  @CsvField(optional = true)
-  private float minimumInitialPurchase = MISSING_VALUE;
-
-  public String getCurrency() {
-    return currency;
-  }
-
-  public void setCurrency(String currency) {
-    this.currency = currency;
-  }
-
-  public float getAmount() {
-    return amount;
-  }
-
-  public void setAmount(float amount) {
-    this.amount = amount;
-  }
-
-  public float getMinimumInitialPurchase() {
-    return minimumInitialPurchase;
-  }
-
-  public void setMinimumInitialPurchase(float minimumInitialPurchase) {
-    this.minimumInitialPurchase = minimumInitialPurchase;
-  }
 
   public String getName() {
     return name;
@@ -84,6 +53,14 @@ public final class FareContainer extends IdentityBean<AgencyAndId> {
   @Override
   public void setId(AgencyAndId id) {
     this.id = id;
+  }
+
+  public int getFareMediaType() {
+    return fareMediaType;
+  }
+
+  public void setFareMediaType(int fareMediaType) {
+    this.fareMediaType = fareMediaType;
   }
 
   public RiderCategory getRiderCategory() {

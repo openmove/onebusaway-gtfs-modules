@@ -55,6 +55,12 @@ public class TranslationServiceDataFactoryImpl implements TranslationServiceData
 
     private static final String FACILITY_PROPERTY_DEFINITION_TABLE_NAME = "facilities_properties_definitions";
 
+    private static final String WRONG_WAY_TABLE_NAME = "wrong_way_concurrencies";
+
+    private static final String DIRECTION_ENTRY_TABLE_NAME = "direction_entry";
+
+    private static final String ALTERNATE_STOP_NAME_EXCEPTION_TABLE_NAME = "alternate_stop_name_exception";
+
     private GtfsRelationalDao _dao;
 
     public static TranslationService getTranslationService(GtfsRelationalDao dao) {
@@ -128,6 +134,12 @@ public class TranslationServiceDataFactoryImpl implements TranslationServiceData
                 return FacilityProperty.class;
             case FACILITY_PROPERTY_DEFINITION_TABLE_NAME:
                 return FacilityPropertyDefinition.class;
+            case WRONG_WAY_TABLE_NAME:
+                return WrongWayConcurrency.class;
+            case DIRECTION_ENTRY_TABLE_NAME:
+                return DirectionEntry.class;
+            case ALTERNATE_STOP_NAME_EXCEPTION_TABLE_NAME:
+                return AlternateStopNameException.class;
         }
         return null;
     }

@@ -16,8 +16,7 @@
 package org.onebusaway.gtfs.impl;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 
 import org.onebusaway.gtfs.model.*;
 import org.onebusaway.gtfs.services.GenericMutableDao;
@@ -26,6 +25,7 @@ import org.onebusaway.gtfs.services.GtfsMutableDao;
 
 public class GtfsDaoImpl extends GenericDaoImpl implements GtfsMutableDao {
 
+  public static final String[] OPTIONAL_FILE_NAMES = {"modifications.txt"};
   private StopTimeArray stopTimes = new StopTimeArray();
 
   private ShapePointArray shapePoints = new ShapePointArray();
@@ -33,6 +33,19 @@ public class GtfsDaoImpl extends GenericDaoImpl implements GtfsMutableDao {
   private boolean packStopTimes = false;
 
   private boolean packShapePoints = false;
+
+  private List<String> _optionalMetadataFilenames = null;
+
+  private Map<String, String> metadataByFilename = new HashMap<>();
+
+  public GtfsDaoImpl() {
+    _optionalMetadataFilenames = new ArrayList<>();
+    if (OPTIONAL_FILE_NAMES != null) {
+      for (String optionalFileName : OPTIONAL_FILE_NAMES) {
+        _optionalMetadataFilenames.add(optionalFileName);
+      }
+    }
+  }
 
   public boolean isPackStopTimes() {
     return packStopTimes;
@@ -93,6 +106,14 @@ public class GtfsDaoImpl extends GenericDaoImpl implements GtfsMutableDao {
 
   public Collection<Route> getAllRoutes() {
     return getAllEntitiesForType(Route.class);
+  }
+
+  public Collection<RouteStop> getAllRouteStops() {
+    return getAllEntitiesForType(RouteStop.class);
+  }
+
+  public Collection<RouteShape> getAllRouteShapes() {
+    return getAllEntitiesForType(RouteShape.class);
   }
 
   public Collection<ShapePoint> getAllShapePoints() {
@@ -163,8 +184,8 @@ public class GtfsDaoImpl extends GenericDaoImpl implements GtfsMutableDao {
   }
 
   @Override
-  public Collection<FareContainer> getAllFareContainers() {
-    return getAllEntitiesForType(FareContainer.class);
+  public Collection<FareMedium> getAllFareMedia() {
+    return getAllEntitiesForType(FareMedium.class);
   }
 
   @Override
@@ -239,7 +260,11 @@ public class GtfsDaoImpl extends GenericDaoImpl implements GtfsMutableDao {
   public FacilityPropertyDefinition getFacilityPropertiesDefinitionsForId(AgencyAndId id) { return getEntityForId(FacilityPropertyDefinition.class, id);}
   public RouteNameException getRouteNameExceptionForId(AgencyAndId id) { return getEntityForId(RouteNameException.class, id);}
   public DirectionNameException getDirectionNameExceptionForId(AgencyAndId id) { return getEntityForId(DirectionNameException.class, id);}
+  public AlternateStopNameException getAlternateStopNameExceptionForId(AgencyAndId id) { return getEntityForId(AlternateStopNameException.class, id);}
 
+  public Collection<DirectionEntry> getAllDirectionEntries() {
+    return getAllEntitiesForType(DirectionEntry.class);
+  }
   public Collection<Facility> getAllFacilities() {
     return getAllEntitiesForType(Facility.class);
   }
@@ -255,7 +280,13 @@ public class GtfsDaoImpl extends GenericDaoImpl implements GtfsMutableDao {
   public Collection<DirectionNameException> getAllDirectionNameExceptions() {
     return getAllEntitiesForType(DirectionNameException.class);
   }
+  public Collection<AlternateStopNameException> getAllAlternateStopNameExceptions(){
+    return getAllEntitiesForType(AlternateStopNameException.class);
+  }
 
+  public Collection<WrongWayConcurrency> getAllWrongWayConcurrencies() {
+    return getAllEntitiesForType(WrongWayConcurrency.class);
+  }
   public Collection<Area> getAllAreas() {
     return getAllEntitiesForType(Area.class);
   }
@@ -268,6 +299,16 @@ public class GtfsDaoImpl extends GenericDaoImpl implements GtfsMutableDao {
     return getAllEntitiesForType(LocationGroup.class);
   }
 
+  @Override
+  public Collection<StopAreaElement> getAllStopAreaElements() {
+    return getAllEntitiesForType(StopAreaElement.class);
+  }
+
+  @Override
+  public Collection<StopArea> getAllStopAreas() {
+    return getAllEntitiesForType(StopArea.class);
+  }
+
   public Collection<Location> getAllLocations() {
     return getAllEntitiesForType(Location.class);
   }
@@ -278,11 +319,6 @@ public class GtfsDaoImpl extends GenericDaoImpl implements GtfsMutableDao {
 
   public Collection<Translation> getAllTranslations() {
     return getAllEntitiesForType(Translation.class);
-  }
-
-  @Override
-  public Collection<StopArea> getAllStopAreas() {
-    return getAllEntitiesForType(StopArea.class);
   }
 
   /****
@@ -363,6 +399,26 @@ public class GtfsDaoImpl extends GenericDaoImpl implements GtfsMutableDao {
     }
     super.close();
   }
+
+  @Override
+  public List<String> getOptionalMetadataFilenames() {
+    return _optionalMetadataFilenames;
+  }
+  @Override
+  public boolean hasMetadata(String filename) {
+    return metadataByFilename.containsKey(filename);
+  }
+  @Override
+  public String getMetadata(String filename) {
+    return metadataByFilename.get(filename);
+  }
+  @Override
+  public void addMetadata(String filename, String content) {
+    metadataByFilename.put(filename, content);
+    if (!_optionalMetadataFilenames.contains(filename))
+      _optionalMetadataFilenames.add(filename);
+  }
+
 
   /****
    * Private Methods
