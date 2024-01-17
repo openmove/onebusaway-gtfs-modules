@@ -304,7 +304,7 @@ public class HibernateGtfsRelationalDaoImpl implements GtfsMutableRelationalDao 
   public Collection<StopAreaElement> getAllStopAreaElements() {
     Collection<StopArea> groups = _ops.find("FROM StopArea");
     return groups.stream().flatMap(group -> group.getLocations().stream().map(stopLocation -> {
-      var stopAreaElement = new StopAreaElement();
+    	StopAreaElement stopAreaElement = new StopAreaElement();
       stopAreaElement.setId(group.getId());
       stopAreaElement.setStopLocation(stopLocation);
       return stopAreaElement;

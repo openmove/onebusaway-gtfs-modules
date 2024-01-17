@@ -24,6 +24,8 @@ import org.onebusaway.gtfs.serialization.GtfsWriter;
 import org.onebusaway.gtfs.services.GtfsRelationalDao;
 import org.onebusaway.gtfs_transformer.AbstractTestSupport;
 import org.onebusaway.gtfs_transformer.services.TransformContext;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -91,7 +93,10 @@ public class AddExtensionFileTest extends AbstractTestSupport {
     // verify file is there
     assertTrue("expected extension to be present!", expectedFile.exists());
     assertTrue("expected extension to be a file!", expectedFile.isFile());
-    String actualText = Files.readString(Path.of(modLocation));
+    Path path = Paths.get(modLocation);
+    byte[] bytes = Files.readAllBytes(path);
+    String actualText = new String(bytes, StandardCharsets.UTF_8); 
+    
     assertEquals(TXT_STRING, actualText);
 
   }

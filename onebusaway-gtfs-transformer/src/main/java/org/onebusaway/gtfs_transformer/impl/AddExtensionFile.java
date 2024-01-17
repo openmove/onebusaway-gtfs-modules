@@ -21,6 +21,7 @@ import org.onebusaway.gtfs_transformer.services.GtfsTransformStrategy;
 import org.onebusaway.gtfs_transformer.services.TransformContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.nio.charset.StandardCharsets;
 
 import java.io.File;
 import java.io.IOException;
@@ -65,9 +66,10 @@ public class AddExtensionFile implements GtfsTransformStrategy {
     }
     String content = null;
     try {
-      content = Files.readString(extension.toPath());
+        byte[] bytes = Files.readAllBytes(extension.toPath());
+        content = new String(bytes, StandardCharsets.UTF_8); 
     } catch (IOException e) {
-      throw new IllegalStateException(e);
+        throw new IllegalStateException(e);
     }
     if (content == null)
       throw new IllegalStateException("no content for specified file " + extensionFilename);

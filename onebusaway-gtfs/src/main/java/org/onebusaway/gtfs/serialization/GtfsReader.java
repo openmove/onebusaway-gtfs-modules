@@ -373,8 +373,8 @@ public class GtfsReader extends CsvEntityReader {
         }
         locationGroup.addLocation(locationGroupElement.getLocation());
       } else if (entity instanceof StopAreaElement) {
-        var stopAreaElement = (StopAreaElement) entity;
-        var stopArea = _entityStore.getEntityForId(StopArea.class, stopAreaElement.getArea().getId());
+    	  StopAreaElement stopAreaElement = (StopAreaElement) entity;
+    	  StopArea stopArea = _entityStore.getEntityForId(StopArea.class, stopAreaElement.getArea().getId());
         if (stopArea == null) {
           stopArea = new StopArea();
           stopArea.setArea(stopAreaElement.getArea());
