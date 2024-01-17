@@ -60,10 +60,6 @@ public final class FareProduct extends IdentityBean<AgencyAndId> {
     this.fareProductId = fareProductId;
   }
 
-  public FareContainer getFareContainer() {
-    return fareContainer;
-
-}
   public FareMedium getFareMedium() {
     return fareMedium;
   }
