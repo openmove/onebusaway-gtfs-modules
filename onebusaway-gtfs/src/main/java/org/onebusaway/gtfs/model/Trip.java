@@ -88,8 +88,7 @@ public final class Trip extends IdentityBean<AgencyAndId> {
 
   @CsvField(optional = true)
   private Double safeDurationOffset;
-
-
+  
   @Deprecated
   @CsvField(optional = true, defaultValue = "0")
   private int tripBikesAllowed = 0;
@@ -125,6 +124,10 @@ public final class Trip extends IdentityBean<AgencyAndId> {
   @CsvField(optional = true, name = "boarding_type")
   private int boardingType;
 
+  @CsvField(optional = true, name = "trip_booking_rule_id", mapping = EntityFieldMappingFactory.class, order = -2)
+  private BookingRule bookingRule;
+  
+  
   public Trip() {
 
   }
@@ -158,6 +161,7 @@ public final class Trip extends IdentityBean<AgencyAndId> {
     this.peakOffpeak = obj.peakOffpeak;
     this.mtaTripId = obj.mtaTripId;
     this.boardingType = obj.boardingType;
+    this.bookingRule = obj.bookingRule;
   }
 
   public AgencyAndId getId() {
@@ -390,4 +394,12 @@ public final class Trip extends IdentityBean<AgencyAndId> {
   public void setBoardingType(int boardingType) {
     this.boardingType = boardingType;
   }
+  
+  public BookingRule getBookingRule() {
+	    return bookingRule;
+	  }
+
+	public void setBookingRule(BookingRule bookingRule) {
+	  this.bookingRule = bookingRule;
+	}
 }

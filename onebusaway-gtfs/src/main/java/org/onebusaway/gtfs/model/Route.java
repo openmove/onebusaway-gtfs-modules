@@ -79,6 +79,9 @@ public final class Route extends IdentityBean<AgencyAndId> {
   // That is it has a vending machine on board.
   @CsvField(optional = true, name = "regional_fare_card", defaultValue = "0")
   private int regionalFareCardAccepted;
+  
+  @CsvField(optional = true, name = "route_booking_rule_id", mapping = EntityFieldMappingFactory.class, order = -2)
+  private BookingRule bookingRule;
 
   public Route() {
 
@@ -99,6 +102,7 @@ public final class Route extends IdentityBean<AgencyAndId> {
     this.brandingUrl = r.brandingUrl;
     this.eligibilityRestricted = r.eligibilityRestricted;
     this.regionalFareCardAccepted = r.regionalFareCardAccepted;
+    this.bookingRule = r.bookingRule;
   }
 
   public AgencyAndId getId() {
@@ -244,6 +248,14 @@ public final class Route extends IdentityBean<AgencyAndId> {
 
   public void setRegionalFareCardAccepted(int regionalFareCardAccepted) {
     this.regionalFareCardAccepted = regionalFareCardAccepted;
+  }
+  
+  public BookingRule getBookingRule() {
+	    return bookingRule;
+	  }
+
+  public void setBookingRule(BookingRule bookingRule) {
+    this.bookingRule = bookingRule;
   }
 
   @Override
