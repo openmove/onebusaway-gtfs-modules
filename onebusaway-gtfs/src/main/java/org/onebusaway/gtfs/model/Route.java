@@ -81,7 +81,8 @@ public final class Route extends IdentityBean<AgencyAndId> {
   @CsvField(optional = true, name = "regional_fare_card", defaultValue = "0")
   private int regionalFareCardAccepted;
   
-  @CsvField(optional = true, name = "route_booking_rule_id", mapping = EntityFieldMappingFactory.class, order = -2)
+  //Custom extension representing a booking rule for this route
+  @CsvField(optional = true, name = "booking_rule_id", mapping = EntityFieldMappingFactory.class, order = -2)
   private BookingRule bookingRule;
 
   public Route() {

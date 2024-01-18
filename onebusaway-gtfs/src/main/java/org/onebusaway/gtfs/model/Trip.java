@@ -124,7 +124,8 @@ public final class Trip extends IdentityBean<AgencyAndId> {
   @CsvField(optional = true, name = "boarding_type")
   private int boardingType;
 
-  @CsvField(optional = true, name = "trip_booking_rule_id", mapping = EntityFieldMappingFactory.class, order = -2)
+ //Custom extension representing a booking rule for this trip
+  @CsvField(optional = true, name = "booking_rule_id", mapping = EntityFieldMappingFactory.class, order = -2)
   private BookingRule bookingRule;
   
   
