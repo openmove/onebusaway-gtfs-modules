@@ -64,7 +64,6 @@ public final class Agency extends IdentityBean<String> {
     this.timezone = a.timezone;
     this.lang = a.lang;
     this.phone = a.phone;
-    this.brandingUrl = a.brandingUrl;
     this.email = a.email;
     this.fareUrl = a.fareUrl;
     this.vatCode = a.vatCode;

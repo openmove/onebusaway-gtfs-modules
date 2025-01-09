@@ -16,32 +16,29 @@
  */
 package org.onebusaway.gtfs.serialization;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static  org.junit.jupiter.api.Assertions.assertEquals;
+import static  org.junit.jupiter.api.Assertions.assertFalse;
+import static  org.junit.jupiter.api.Assertions.assertNotNull;
+import static  org.junit.jupiter.api.Assertions.assertNotSame;
+import static  org.junit.jupiter.api.Assertions.assertNull;
+import static  org.junit.jupiter.api.Assertions.assertSame;
+import static  org.junit.jupiter.api.Assertions.assertTrue;
+import static  org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.onebusaway.csv_entities.exceptions.CsvEntityIOException;
 import org.onebusaway.csv_entities.exceptions.InvalidValueEntityException;
 import org.onebusaway.csv_entities.exceptions.MissingRequiredFieldException;
 import org.onebusaway.gtfs.GtfsTestData;
-import org.onebusaway.gtfs.impl.GtfsRelationalDaoImpl;
 import org.onebusaway.gtfs.model.*;
 import org.onebusaway.gtfs.model.calendar.ServiceDate;
 import org.onebusaway.gtfs.serialization.mappings.AgencyNotFoundForRouteException;
@@ -78,8 +75,8 @@ public class GtfsReaderTest extends BaseGtfsTest {
     gtfs.putLines(
         "trips.txt",
         "route_id,service_id,trip_id,trip_headsign,trip_short_name,direction_id,block_id,shape_id,route_short_name,"
-            + "trip_bikes_allowed,bikes_allowed,wheelchair_accessible,peak_offpeak",
-        "R1,WEEK,T1,head-sign,short-name,1,B1,SHP1,10X,1,2,1,3");
+            + "trip_bikes_allowed,bikes_allowed,wheelchair_accessible,peak_offpeak,cars_allowed",
+        "R1,WEEK,T1,head-sign,short-name,1,B1,SHP1,10X,1,2,1,3,1");
     gtfs.putLines(
         "stop_times.txt",
         "trip_id,arrival_time,departure_time,stop_id,stop_sequence,stop_headsign,pickup_type,drop_off_type,"
@@ -198,7 +195,6 @@ public class GtfsReaderTest extends BaseGtfsTest {
     assertEquals("route desc", route.getDesc());
     assertEquals("FF0000", route.getColor());
     assertEquals("0000FF", route.getTextColor());
-    assertEquals(1, route.getRouteBikesAllowed());
     assertEquals(2, route.getBikesAllowed());
     assertEquals("http://agency.gov/route", route.getUrl());
     assertEquals(100, route.getSortOrder());
@@ -212,9 +208,8 @@ public class GtfsReaderTest extends BaseGtfsTest {
     assertEquals("1", trip.getDirectionId());
     assertEquals("B1", trip.getBlockId());
     assertEquals(new AgencyAndId("1", "SHP1"), trip.getShapeId());
-    assertEquals("10X", trip.getRouteShortName());
-    assertEquals(1, trip.getTripBikesAllowed());
     assertEquals(2, trip.getBikesAllowed());
+    assertEquals(1, trip.getCarsAllowed());
     assertEquals(1, trip.getWheelchairAccessible());
     assertEquals(3, trip.getPeakOffpeak());
 

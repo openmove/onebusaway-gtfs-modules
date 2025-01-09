@@ -15,71 +15,29 @@
  */
 package org.onebusaway.gtfs.serialization;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static  org.junit.jupiter.api.Assertions.assertSame;
 
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.onebusaway.csv_entities.exceptions.CsvEntityIOException;
 import org.onebusaway.gtfs.GtfsTestData;
 import org.onebusaway.gtfs.model.*;
 import org.onebusaway.gtfs.services.*;
+//import org.onebusaway.gtfs.model.Location;
+//import org.onebusaway.gtfs.model.LocationGroup;
+//import org.onebusaway.gtfs.model.Stop;
+//import org.onebusaway.gtfs.model.StopLocation;
+//import org.onebusaway.gtfs.model.StopTime;
 
 public class FlexReaderTest extends BaseGtfsTest {
 
   private static final String AGENCY_ID = "1";
-
-  @Test
-  public void pierceTransitStopAreas() throws CsvEntityIOException, IOException {
-	  GtfsRelationalDao dao = processFeed(GtfsTestData.getPierceTransitFlex(), AGENCY_ID, false);
-
-	  List<StopAreaElement> areaElements = dao.getAllStopAreaElements().stream().collect(Collectors.toList());
-    assertEquals(15, areaElements.size());
-
-    StopAreaElement first = areaElements.get(0);
-    assertEquals("1_4210813", first.getArea().getId().toString());
-    StopLocation stop = first.getStopLocation();
-    assertEquals("4210806", stop.getId().getId());
-    assertEquals("Bridgeport Way & San Francisco Ave SW (Northbound)", stop.getName());
-    assertSame(Stop.class, stop.getClass());
-
-    StopAreaElement areaWithLocation = areaElements.stream().filter(a -> a.getId().toString().equals("1_4210800_area_1076")).findFirst().get();
-
-    StopLocation location = areaWithLocation.getStopLocation();
-    assertSame(Location.class, location.getClass());
-
-    List<StopArea> stopAreas =  dao.getAllStopAreas().stream().collect(Collectors.toList());
-    assertEquals(2, stopAreas.size());
-
-    StopArea area = getArea(stopAreas, "1_4210813");
-    assertEquals(12, area.getLocations().size());
-    StopLocation stop2 = area.getLocations().stream().min(Comparator.comparing(StopLocation::getName)).get();
-    assertEquals("Barnes Blvd & D St SW", stop2.getName());
-
-    StopArea area2 = getArea(stopAreas, "1_4210800");
-    assertEquals(3, area2.getLocations().size());
-
-//    var names = area2.getLocations().stream().map(s -> s.getId().toString()).collect(Collectors.toSet());
-//
-//    assertEquals(Set.of("1_area_1075", "1_area_1074", "1_area_1076"), names);
-
-    List<Trip> trips = dao.getAllTrips().stream().collect(Collectors.toList());;
-    assertEquals(7, trips.size());
-
-    Trip trip = trips.stream().filter(t -> t.getId().getId().equals("t_5586096_b_80376_tn_0")).findFirst().get();
-    List<StopTime> stopTimes = dao.getStopTimesForTrip(trip);
-
-//    var classes = stopTimes.stream().map(st -> st.getStop().getClass()).collect(Collectors.toList());
-//    assertEquals(List.of(StopArea.class, StopArea.class), classes);
-//
-//    assertEquals("JBLM Stops", area.getName());
-
-  }
 
   @Test
   public void locationIdAsASeparateColumn() throws CsvEntityIOException, IOException {
@@ -100,9 +58,15 @@ public class FlexReaderTest extends BaseGtfsTest {
 
   @Test
   public void locationGroupIdAsSeparateColumn() throws CsvEntityIOException, IOException {
-	  GtfsRelationalDao dao = processFeed(GtfsTestData.getAuburnTransitFlex(), AGENCY_ID, false);
-    Trip trip = dao.getAllTrips().stream().filter(t -> t.getId().getId().equals("t_5756013_b_33000_tn_0")).findAny().get();
-    List<StopTime> stopTimes = dao.getStopTimesForTrip(trip);
+    var dao = processFeed(GtfsTestData.getAuburnTransitFlex(), AGENCY_ID, false);
+    var locationGroup = List.copyOf(dao.getAllLocationGroups()).get(0);
+    assertEquals("Aurburn Loop Stops", locationGroup.getName());
+    assertEquals("1_4230479", locationGroup.getId().toString());
+    var actualStops = locationGroup.getLocations().stream().map(s -> s.getId().toString()).collect(Collectors.toList());
+    assertEquals(30, actualStops.size());
+
+    var trip = dao.getAllTrips().stream().filter(t -> t.getId().getId().equals("t_5756013_b_33000_tn_0")).findAny().get();
+    var stopTimes = dao.getStopTimesForTrip(trip);
     stopTimes.forEach(st -> assertNotNull(st.getStopLocation()));
 
     List<StopLocation> stopLocations = stopTimes.stream().map(StopTime::getStopLocation).collect(Collectors.toList());
@@ -115,7 +79,4 @@ public class FlexReaderTest extends BaseGtfsTest {
     assertEquals(LocationGroup.class, second.getClass());
   }
 
-  private static StopArea getArea(List<StopArea> stopAreas, String id) {
-    return stopAreas.stream().filter(a -> a.getId().toString().equals(id)).findAny().get();
-  }
 }

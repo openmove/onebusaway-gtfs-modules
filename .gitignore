@@ -12,3 +12,5 @@ junkyard
 /onebusaway-gtfs-modules.iml
 /pom.xml.versionsBackup
 *.iml
+*.zip
+*.jar

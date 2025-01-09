@@ -354,6 +354,16 @@ public class GtfsDataServiceImpl implements GtfsDataService {
     }
 
     @Override
+    public Collection<Vehicle> getAllVehicles() {
+        return _dao.getAllVehicles();
+    }
+
+    @Override
+    public Vehicle getVehicleForId(AgencyAndId id) {
+        return _dao.getVehicleForId(id);
+    }
+
+    @Override
     public Collection<Area> getAllAreas() {
         return _dao.getAllAreas();
     }
@@ -366,11 +376,6 @@ public class GtfsDataServiceImpl implements GtfsDataService {
     @Override
     public Collection<StopAreaElement> getAllStopAreaElements() {
         return _dao.getAllStopAreaElements();
-    }
-
-    @Override
-    public Collection<StopArea> getAllStopAreas() {
-        return _dao.getAllStopAreas();
     }
 
     @Override
@@ -391,6 +396,11 @@ public class GtfsDataServiceImpl implements GtfsDataService {
     @Override
     public Collection<Translation> getAllTranslations() {
         return _dao.getAllTranslations();
+    }
+
+    @Override
+    public Collection<Network> getAllNetworks() {
+        return _dao.getAllNetworks();
     }
 
     @Override
